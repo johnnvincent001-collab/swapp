@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reward tiers - SWAPP</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background: #f5f6fa; color: #333; }
+    a { color: inherit; text-decoration: none; display: flex; align-items: center; width: 100%; }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      transition: width 0.3s;
+    }
+    .sidebar.minimized { width: 80px; }
+    .sidebar.minimized h1, .sidebar.minimized .text { display: none; }
+    .toggle-btn { background: none; border: none; font-size: 22px; cursor: pointer; margin-bottom: 20px; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 12px 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      transition: 0.3s ease;
+      cursor: pointer;
+    }
+    .sidebar ul li:hover { background: #f0f0f0; transform: translateX(8px); }
+    .sidebar ul li.active { background: #eaf2ff; font-weight: bold; }
+    .material-symbols-outlined { margin-right: 8px; }
+    .logout {
+      padding: 12px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    .logout:hover { background: #f0f0f0; }
+
+    .main { flex: 1; padding: 30px; overflow-y: auto; }
+    h2 { font-size: 28px; margin-bottom: 8px; }
+    .sub { color: #666; font-size: 14px; margin-bottom: 20px; max-width: 760px; line-height: 1.45; }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      max-width: 520px;
+    }
+    .tier-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .tier-row label {
+      min-width: 88px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .tier-row input[type="number"] {
+      flex: 1;
+      max-width: 160px;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: #1f5fbf;
+    }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-secondary { background: #6b7280; margin-left: 10px; }
+
+    .msg { font-size: 14px; margin-top: 14px; }
+    .msg.err { color: #b42318; }
+    .msg.ok { color: #0f5132; }
+    .hint { font-size: 13px; color: #666; margin-top: 16px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div>
+    <button class="toggle-btn" id="toggleSidebar" type="button">☰</button>
+    <h1>
+      <span style="color:#3498db;">SW</span><span style="color:#dbae80;">APP</span>
+    </h1>
+    <ul>
+      <li><a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="text">Dashboard</span></a></li>
+      <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
+      <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
+      <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
+      <li class="active"><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
+      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+    </ul>
+  </div>
+  <div class="logout" id="logoutBtn">
+    <span class="material-symbols-outlined">logout</span>
+    <span class="text">Logout</span>
+  </div>
+</aside>
+
+<main class="main">
+  <h2>Reward tiers</h2>
+  <p class="sub">
+    Set the five point thresholds shown in the mobile app’s Rewards screen (from lowest to highest).
+    Only this admin site can change these values or deduct users’ balances for redemptions.
+    Sellers still earn points in the app when deals are completed; staff use <strong>Reward points</strong> to subtract points when a reward is given in person.
+  </p>
+
+  <section class="card">
+    <form id="tierForm">
+      <div class="tier-row"><label for="t1">Tier 1</label><input id="t1" name="t1" type="number" min="1" max="1000000" step="1" required></div>
+      <div class="tier-row"><label for="t2">Tier 2</label><input id="t2" name="t2" type="number" min="1" max="1000000" step="1" required></div>
+      <div class="tier-row"><label for="t3">Tier 3</label><input id="t3" name="t3" type="number" min="1" max="1000000" step="1" required></div>
+      <div class="tier-row"><label for="t4">Tier 4</label><input id="t4" name="t4" type="number" min="1" max="1000000" step="1" required></div>
+      <div class="tier-row"><label for="t5">Tier 5</label><input id="t5" name="t5" type="number" min="1" max="1000000" step="1" required></div>
+      <div style="margin-top: 20px;">
+        <button type="submit" class="btn" id="saveBtn">Save tiers</button>
+        <button type="button" class="btn btn-secondary" id="resetDefaults">Reset form to defaults</button>
+      </div>
+    </form>
+    <div id="statusMsg" class="msg" role="status"></div>
+    <p class="hint">
+      Tiers must be strictly increasing (each value greater than the previous). The app shows five claim buttons using these amounts.
+    </p>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    onSnapshot,
+    setDoc,
+    Timestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  if (!localStorage.getItem("adminName")) {
+    window.location.href = "login.html";
+  }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
+    authDomain: "swapp-7d52b.firebaseapp.com",
+    projectId: "swapp-7d52b"
+  };
+
+  const DEFAULTS = [100, 200, 300, 400, 500];
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  await signOut(auth).catch(() => {});
+
+  const settingsRef = doc(db, "app_settings", "rewards");
+  const statusMsg = document.getElementById("statusMsg");
+  const saveBtn = document.getElementById("saveBtn");
+  const inputs = [1, 2, 3, 4, 5].map(n => document.getElementById("t" + n));
+
+  function setStatus(text, kind) {
+    statusMsg.textContent = text || "";
+    statusMsg.className = "msg" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+  }
+
+  function fillForm(values) {
+    values.forEach((v, i) => {
+      inputs[i].value = String(v);
+    });
+  }
+
+  function readInts() {
+    return inputs.map(el => {
+      const n = parseInt(String(el.value).trim(), 10);
+      return Number.isNaN(n) ? null : n;
+    });
+  }
+
+  function validateTiers(arr) {
+    if (arr.some(v => v === null)) return "Enter a whole number for every tier.";
+    if (arr.some(v => v < 1 || v > 1000000)) return "Each tier must be between 1 and 1,000,000.";
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] <= arr[i - 1]) return "Tiers must be strictly increasing (tier " + (i + 1) + " must be greater than tier " + i + ").";
+    }
+    return null;
+  }
+
+  document.getElementById("resetDefaults").addEventListener("click", () => {
+    fillForm(DEFAULTS);
+    setStatus("Form reset to 100–500. Click Save tiers to publish.", "ok");
+  });
+
+  document.getElementById("tierForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const tiers = readInts();
+    const err = validateTiers(tiers);
+    if (err) {
+      setStatus(err, "err");
+      return;
+    }
+
+    saveBtn.disabled = true;
+    setStatus("Saving…", "");
+    await signOut(auth).catch(() => {});
+
+    const payload = {
+      tier1: tiers[0],
+      tier2: tiers[1],
+      tier3: tiers[2],
+      tier4: tiers[3],
+      tier5: tiers[4],
+      updatedAt: Timestamp.now()
+    };
+
+    try {
+      await setDoc(settingsRef, payload, { merge: true });
+      setStatus("Saved. The mobile app will pick up these values in real time.", "ok");
+    } catch (e) {
+      const msg = e?.message || String(e);
+      setStatus(
+        "Failed: " + msg
+          + (msg.toLowerCase().includes("permission")
+            ? " Publish the latest firestore.rules (includes app_settings/rewards)."
+            : ""),
+        "err"
+      );
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  onSnapshot(settingsRef, snap => {
+    if (!snap.exists()) {
+      fillForm(DEFAULTS);
+      setStatus("No saved configuration yet — defaults shown. Click Save tiers to create it.", "");
+      return;
+    }
+    const d = snap.data() || {};
+    const fromDoc = [d.tier1, d.tier2, d.tier3, d.tier4, d.tier5].map((v, i) => {
+      const n = typeof v === "number" && !Number.isNaN(v) ? Math.trunc(v) : parseInt(String(v ?? ""), 10);
+      return Number.isNaN(n) ? DEFAULTS[i] : n;
+    });
+    const err = validateTiers(fromDoc);
+    fillForm(err ? DEFAULTS : fromDoc);
+    if (err) setStatus("Stored tiers were invalid; showing defaults in the form. Save to fix.", "err");
+  }, err => {
+    setStatus("Could not load settings: " + (err?.message || err), "err");
+  });
+
+  document.getElementById("toggleSidebar").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("minimized");
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("adminName");
+    localStorage.removeItem("adminRole");
+    window.location.href = "login.html";
+  });
+</script>
+</body>
+</html>

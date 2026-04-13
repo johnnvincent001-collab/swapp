@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report Details - SWAPP</title>
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background: #f5f6fa;
+      color: #333;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      outline: none;
+    }
+
+    /* Sidebar (match existing pages) */
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      transition: width .3s;
+    }
+
+    .sidebar.minimized { width: 80px; }
+    .sidebar.minimized h1,
+    .sidebar.minimized ul li span.text { display: none; }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      color: #333;
+    }
+
+    .logout {
+      margin-top: 20px;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .logout:hover { background: #f0f0f0; }
+
+    .material-symbols-outlined { font-size: 22px; }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d0d7e2;
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: .2s ease;
+    }
+
+    .back-btn:hover { background: #f7fbff; transform: translateY(-1px); }
+
+    h2 {
+      font-size: 28px;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      padding: 20px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 18px;
+      margin-bottom: 16px;
+    }
+
+    .meta-item {
+      padding: 12px;
+      border-radius: 10px;
+      background: #f7f9ff;
+      border: 1px solid #e5e9f2;
+    }
+
+    .meta-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .meta-value {
+      font-size: 14px;
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pill.pending { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+    .pill.open { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .pill.closed { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+    .section-title {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .desc {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      color: #111827;
+    }
+
+    .raw {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #e5e9f2;
+      background: #0b1020;
+      color: #e5e7eb;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      display: none;
+    }
+
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #d0d7e2;
+      background: #fff;
+      cursor: pointer;
+      transition: .2s ease;
+      font-weight: 700;
+    }
+
+    .btn:hover { background: #f7fbff; transform: translateY(-1px); }
+
+    .hint {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .meta-grid { grid-template-columns: 1fr; }
+      h2 { font-size: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar" id="sidebar">
+    <div>
+      <button class="toggle-btn" id="toggleSidebar">☰</button>
+
+      <h1>
+        <span style="color:#3498db;">SW</span>
+        <span style="color:#dbae80;">APP</span>
+      </h1>
+
+      <ul style="list-style:none; padding:0; margin-top:20px;">
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="index.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">dashboard</span>
+            <span class="text">Dashboard</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="customers.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">group</span>
+            <span class="text">Authorized Users</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="product.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">shopping_bag</span>
+            <span class="text">Products</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px; background:#eaf2ff; font-weight:bold;">
+          <a href="reports.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">description</span>
+            <span class="text">Reports</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="reward-points.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">loyalty</span>
+            <span class="text">Reward points</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="reward-system.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">tune</span>
+            <span class="text">Reward tiers</span>
+          </a>
+        </li>
+        <li style="padding:12px 10px; margin:8px 0; border-radius:8px;">
+          <a href="settings.html" style="display:flex; align-items:center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">settings</span>
+            <span class="text">Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="logout" id="logoutBtn">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="text">Logout</span>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="header">
+      <div class="header-left">
+        <button class="back-btn" id="backBtn" type="button">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Back
+        </button>
+        <h2 id="pageTitle">Report Details</h2>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">Report ID</div>
+          <div class="meta-value" id="reportId">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Status</div>
+          <div class="meta-value" id="statusWrap">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Title</div>
+          <div class="meta-value" id="title">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Date Submitted</div>
+          <div class="meta-value" id="dateSubmitted">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Reporter</div>
+          <div class="meta-value" id="reporterName">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Reported user</div>
+          <div class="meta-value" id="reportedName">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Product</div>
+          <div class="meta-value" id="productName">—</div>
+        </div>
+
+        <div class="meta-item">
+          <div class="meta-label">Custom reason</div>
+          <div class="meta-value" id="customReason">—</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Description</h3>
+      <div class="desc" id="description">Loading...</div>
+
+      <div class="row-actions">
+        <button class="btn" id="closeBtn" type="button">Close report</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
+      authDomain: "swapp-7d52b.firebaseapp.com",
+      projectId: "swapp-7d52b"
+    };
+
+    // Protect page
+    if (!localStorage.getItem("adminName")) {
+      window.location.href = "login.html";
+    }
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const sidebar = document.getElementById("sidebar");
+    const toggleSidebar = document.getElementById("toggleSidebar");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    toggleSidebar.onclick = () => sidebar.classList.toggle("minimized");
+    logoutBtn.onclick = () => {
+      localStorage.removeItem("adminName");
+      window.location.href = "login.html";
+    };
+    backBtn.onclick = () => window.location.href = "reports.html";
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    const elReportId = document.getElementById("reportId");
+    const elTitle = document.getElementById("title");
+    const elStatusWrap = document.getElementById("statusWrap");
+    const elDateSubmitted = document.getElementById("dateSubmitted");
+    const elDescription = document.getElementById("description");
+    const elPageTitle = document.getElementById("pageTitle");
+    const elReporterName = document.getElementById("reporterName");
+    const elReportedName = document.getElementById("reportedName");
+    const elProductName = document.getElementById("productName");
+    const elCustomReason = document.getElementById("customReason");
+    const closeBtn = document.getElementById("closeBtn");
+
+    if (!id) {
+      elDescription.textContent = "Missing report id. Go back and click a report again.";
+      elReportId.textContent = "—";
+      if (closeBtn) closeBtn.disabled = true;
+    } else {
+      elReportId.textContent = "#" + id;
+      loadReport(id);
+    }
+
+    function pillForStatus(statusValue) {
+      const s = (statusValue || "Pending").toString();
+      const key = s.toLowerCase();
+      const cls = key === "open" ? "open" : key === "closed" ? "closed" : "pending";
+      return `<span class="pill ${cls}">${s}</span>`;
+    }
+
+    async function loadReport(reportId) {
+      try {
+        const ref = doc(db, "reports", reportId);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          elDescription.textContent = "Report not found (it may have been deleted).";
+          elTitle.textContent = "—";
+          elStatusWrap.textContent = "—";
+          elDateSubmitted.textContent = "—";
+          if (elReporterName) elReporterName.textContent = "—";
+          if (elReportedName) elReportedName.textContent = "—";
+          if (elProductName) elProductName.textContent = "—";
+          if (elCustomReason) elCustomReason.textContent = "—";
+          if (closeBtn) closeBtn.disabled = true;
+          return;
+        }
+
+        const data = snap.data() || {};
+
+        const fallbackTitle = data.reason
+          ? `${data.reason}${data.listingType ? " - " + data.listingType : ""}`
+          : "No Title";
+        const title = data.title || fallbackTitle;
+        const status = data.status || "Pending";
+        const desc = data.details || data.description || data.message || "No description provided.";
+        const reporter = data.reporterUserName || data.reporterName || data.reporterUserId || "—";
+        const reported = data.reportedUserName || data.reportedName || data.reportedUserId || "—";
+        const product = data.listingName || data.productName || data.listingDescription || "—";
+        const customReason = data.customReason || "—";
+
+        const date =
+          data.date?.toDate ? data.date.toDate() :
+          data.createdAt?.toDate ? data.createdAt.toDate() :
+          data.timestamp?.toDate ? data.timestamp.toDate() :
+          null;
+
+        elTitle.textContent = title;
+        elStatusWrap.innerHTML = pillForStatus(status);
+        elDateSubmitted.textContent = date ? date.toLocaleString() : "N/A";
+        elDescription.textContent = desc;
+        if (elReporterName) elReporterName.textContent = reporter;
+        if (elReportedName) elReportedName.textContent = reported;
+        if (elProductName) elProductName.textContent = product;
+        if (elCustomReason) elCustomReason.textContent = customReason;
+
+        elPageTitle.textContent = `Report: ${title}`;
+        document.title = `Report - ${title} - SWAPP`;
+
+        const statusKey = status.toString().toLowerCase();
+        if (closeBtn) {
+          closeBtn.disabled = !(statusKey === "pending" || statusKey === "open");
+          closeBtn.onclick = async () => {
+            if (closeBtn.disabled) return;
+            closeBtn.disabled = true;
+            try {
+              await updateDoc(ref, { status: "closed", closedAt: serverTimestamp() });
+            } catch (e) {
+              alert("Failed to close report: " + (e?.message || e));
+              closeBtn.disabled = false;
+            }
+          };
+        }
+
+      } catch (e) {
+        elDescription.textContent = "Failed to load report: " + (e?.message || e);
+        if (closeBtn) closeBtn.disabled = true;
+      }
+    }
+  </script>
+</body>
+</html>
+

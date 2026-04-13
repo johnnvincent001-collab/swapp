@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SWAPP</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #d6eaff, #ffffff);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 320px;
+      text-align: center;
+    }
+    .login-container h2 { margin-bottom: 10px; }
+    .login-container p { font-size: 14px; color: #666; margin-bottom: 20px; }
+    .input-field {
+      width: 100%; padding: 12px; margin-bottom: 12px;
+      border: 1px solid #ccc; border-radius: 8px;
+    }
+    .login-btn {
+      width: 100%; background: #000; color: #fff;
+      padding: 12px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 15px;
+    }
+    .login-btn:hover { background: #333; }
+    .error { color: red; font-size: 13px; margin-top: 8px; min-height: 15px; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <p>Only Admins can access</p>
+    <input id="nameInput" type="text" placeholder="Enter your name" class="input-field" required>
+    <input id="passwordInput" type="password" placeholder="Enter your password" class="input-field" required>
+    <button id="loginBtn" class="login-btn">Login</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      limit,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
+      authDomain: "swapp-7d52b.firebaseapp.com",
+      projectId: "swapp-7d52b",
+      storageBucket: "swapp-7d52b.appspot.com",
+      messagingSenderId: "582686986466",
+      appId: "1:582686986466:web:18c8944fb2ae6b4997cebb",
+      measurementId: "G-9VJYP827TS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function canAccessWebByRole(role) {
+      const normalized = String(role || "").toLowerCase().trim();
+      return normalized === "admin";
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const name = document.getElementById("nameInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+      const errorMsg = document.getElementById("errorMsg");
+      errorMsg.textContent = "";
+
+      if (!name || !password) {
+        errorMsg.textContent = "Please enter both name and password.";
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "authorized_users"),
+          where("full_name_lower", "==", name.toLowerCase()),
+          limit(1)
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          errorMsg.textContent = "You are not authorized.";
+          return;
+        }
+
+        const userDoc = snap.docs[0].data();
+        const role = userDoc.Role || "Guest";
+        const webAccess = typeof userDoc.web_access === "boolean"
+          ? userDoc.web_access
+          : canAccessWebByRole(role);
+
+        if (!webAccess) {
+          errorMsg.textContent = "Guest accounts cannot access the admin web.";
+          return;
+        }
+
+        if ((userDoc.password || "") !== password) {
+          errorMsg.textContent = "Incorrect password.";
+          return;
+        }
+
+        localStorage.setItem("adminName", userDoc.full_name || name);
+        localStorage.setItem("adminRole", role);
+        window.location.href = "index.html";
+      } catch (err) {
+        errorMsg.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

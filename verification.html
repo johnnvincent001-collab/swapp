@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Verification - SWAPP</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background: #f5f6fa; color: #333; }
+    a { color: inherit; text-decoration: none; }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      transition: width .3s;
+    }
+    .sidebar.minimized { width: 80px; }
+    .sidebar.minimized h1, .sidebar.minimized .text { display: none; }
+    .toggle-btn { background: none; border: none; cursor: pointer; margin-bottom: 20px; font-size: 22px; }
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      padding: 12px 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      transition: .3s ease;
+    }
+    .sidebar ul li:hover { background: #f0f0f0; transform: translateX(8px); }
+    .sidebar ul li.active { background: #eaf2ff; font-weight: bold; }
+    .material-symbols-outlined { margin-right: 8px; vertical-align: middle; }
+    .logout { padding: 12px 10px; border-radius: 8px; cursor: pointer; }
+    .logout:hover { background: #f0f0f0; }
+
+    .main { flex: 1; padding: 30px; overflow-y: auto; }
+    h2 { font-size: 28px; margin-bottom: 20px; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 16px;
+    }
+    .card h3 { font-size: 14px; color: #666; margin-bottom: 6px; }
+    .card p { font-size: 22px; font-weight: 700; }
+
+    .table-wrap {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+    .table-wrap h3 { margin-bottom: 12px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    th { background: #f7f7f7; font-size: 13px; }
+    .status {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pending { background: #fff4d6; color: #986100; }
+    .verified { background: #e8f9ee; color: #0f7a3a; }
+    .rejected { background: #fde9e9; color: #9a1f1f; }
+    .id-thumb {
+      width: 72px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #d9d9d9;
+      background: #efefef;
+    }
+    .face-thumb {
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #d9d9d9;
+      background: #efefef;
+    }
+    .img-cell { display: flex; align-items: center; gap: 10px; }
+    .id-link { color: #1f5fbf; font-weight: 700; font-size: 13px; }
+    .muted { color: #888; font-size: 13px; }
+    .actions { display: flex; gap: 8px; }
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+    .btn-approve { background: #1f8f4c; }
+    .btn-reject { background: #c23b3b; }
+  </style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div>
+    <button class="toggle-btn" id="toggleSidebar">☰</button>
+    <h1><span style="color:#3498db;">SW</span><span style="color:#dbae80;">APP</span></h1>
+    <ul>
+      <li><a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="text">Dashboard</span></a></li>
+      <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
+      <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
+      <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
+      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li class="active"><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
+      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+    </ul>
+  </div>
+  <div class="logout" id="logoutBtn">
+    <span class="material-symbols-outlined">logout</span>
+    <span class="text">Logout</span>
+  </div>
+</aside>
+
+<main class="main">
+  <h2>ID Verification</h2>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Total Submitted</h3>
+      <p id="totalSubmitted">0</p>
+    </div>
+    <div class="card">
+      <h3>Pending Verification</h3>
+      <p id="totalPending">0</p>
+    </div>
+    <div class="card">
+      <h3>Verified</h3>
+      <p id="totalVerified">0</p>
+    </div>
+  </div>
+
+  <section class="table-wrap">
+    <h3>Sent for Verification</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>User</th>
+        <th>ID Type</th>
+        <th>Sent By</th>
+        <th>ID Image (Cloudinary)</th>
+        <th>Face Liveness</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+  </section>
+
+  <section class="table-wrap">
+    <h3>Verified Users</h3>
+    <table>
+      <thead>
+      <tr>
+        <th>User</th>
+        <th>ID Type</th>
+        <th>Verified By</th>
+        <th>ID Image (Cloudinary)</th>
+        <th>Face Liveness</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody id="verifiedBody"></tbody>
+    </table>
+  </section>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  if (!localStorage.getItem("adminName")) {
+    window.location.href = "login.html";
+  }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
+    authDomain: "swapp-7d52b.firebaseapp.com",
+    projectId: "swapp-7d52b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const pendingBody = document.getElementById("pendingBody");
+  const verifiedBody = document.getElementById("verifiedBody");
+  const totalSubmitted = document.getElementById("totalSubmitted");
+  const totalPending = document.getElementById("totalPending");
+  const totalVerified = document.getElementById("totalVerified");
+
+  function escapeHtml(text) {
+    return String(text ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function rowHtml(u, section) {
+    const name = u.fullName || u.full_name || u.name || u.phoneNumber || "Unknown user";
+    const idType = u.validIdType || "Not selected";
+    const url = u.validIdUrl || "";
+    const statusRaw = String(u.validIdStatus || "pending").toLowerCase();
+    const faceUrl =
+      u.faceLivenessImageUrl ||
+      u.facePhotoFront ||
+      u.facePhotoFrontUrl ||
+      u.faceRecognitionUrl ||
+      u.faceRecognitionImageUrl ||
+      u.faceIdUrl ||
+      u.faceUrl ||
+      u.selfieUrl ||
+      u.selfie ||
+      "";
+
+    const statusClass =
+      (statusRaw === "verified" || statusRaw === "approved") ? "verified"
+        : (statusRaw === "rejected" ? "rejected" : "pending");
+    const statusLabel =
+      statusClass === "verified" ? "Verified"
+        : (statusClass === "rejected" ? "Rejected" : "Pending");
+    const docId = u.__docId || "";
+
+    return `
+      <tr>
+        <td>${escapeHtml(name)}</td>
+        <td>${escapeHtml(idType)}</td>
+        <td>${escapeHtml(u.verifiedBy || u.sentBy || name)}</td>
+        <td>
+          ${url ? `<div class="img-cell"><img class="id-thumb" src="${escapeHtml(url)}" alt="ID"> <a class="id-link" href="${escapeHtml(url)}" target="_blank">Open</a></div>`
+                : `<span class="muted">No image</span>`}
+        </td>
+        <td>
+          ${faceUrl ? `<div class="img-cell"><img class="face-thumb" src="${escapeHtml(faceUrl)}" alt="Face liveness" loading="lazy"> <a class="id-link" href="${escapeHtml(faceUrl)}" target="_blank" rel="noopener">Open</a></div>`
+                : `<span class="muted">No image</span>`}
+        </td>
+        <td><span class="status ${statusClass}">${statusLabel}</span></td>
+        <td>
+          ${section === "pending"
+            ? `<div class="actions">
+                 <button class="btn btn-approve" data-action="approve" data-id="${escapeHtml(docId)}">Approve</button>
+                 <button class="btn btn-reject" data-action="reject" data-id="${escapeHtml(docId)}">Reject</button>
+               </div>`
+            : `<span class="muted">No action</span>`}
+        </td>
+      </tr>
+    `;
+  }
+
+  async function updateVerificationStatus(userDocId, nextStatus, extra = {}) {
+    if (!userDocId) return;
+    const adminName = localStorage.getItem("adminName") || "Admin";
+    const payload = {
+      validIdStatus: nextStatus,
+      ...extra
+    };
+    if (nextStatus === "verified" || nextStatus === "approved") {
+      payload.verifiedBy = adminName;
+      payload.verifiedAt = serverTimestamp();
+    }
+    if (nextStatus === "rejected") {
+      payload.rejectedBy = adminName;
+      payload.rejectedAt = serverTimestamp();
+    }
+    await updateDoc(doc(db, "users", userDocId), payload);
+  }
+
+  function wireActions() {
+    document.querySelectorAll("button[data-action][data-id]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const action = btn.getAttribute("data-action");
+        btn.disabled = true;
+        try {
+          if (action === "approve") {
+            await updateVerificationStatus(id, "verified");
+          } else if (action === "reject") {
+            const reason = prompt("Optional: enter a reason for rejection (leave blank for none).") || "";
+            await updateVerificationStatus(id, "rejected", reason.trim() ? { validIdRejectReason: reason.trim() } : {});
+          }
+        } catch (e) {
+          alert("Failed to update status: " + (e?.message || e));
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  onSnapshot(collection(db, "users"), snap => {
+    const withSubmission = [];
+    snap.forEach(docSnap => {
+      const u = { __docId: docSnap.id, ...(docSnap.data() || {}) };
+      if (u.validIdUrl || u.validIdStatus || u.validIdType) {
+        withSubmission.push(u);
+      }
+    });
+
+    const pending = withSubmission.filter(u => {
+      const s = String(u.validIdStatus || "pending").toLowerCase();
+      return s !== "verified" && s !== "approved" && s !== "rejected";
+    });
+    const verified = withSubmission.filter(u => {
+      const s = String(u.validIdStatus || "").toLowerCase();
+      return s === "verified" || s === "approved";
+    });
+
+    totalSubmitted.textContent = String(withSubmission.length);
+    totalPending.textContent = String(pending.length);
+    totalVerified.textContent = String(verified.length);
+
+    pendingBody.innerHTML = pending.length ? pending.map(u => rowHtml(u, "pending")).join("") : `<tr><td colspan="7" class="muted">No pending ID submissions.</td></tr>`;
+    verifiedBody.innerHTML = verified.length ? verified.map(u => rowHtml(u, "verified")).join("") : `<tr><td colspan="7" class="muted">No verified users yet.</td></tr>`;
+    wireActions();
+  });
+
+  document.getElementById("toggleSidebar").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("minimized");
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("adminName");
+    window.location.href = "login.html";
+  });
+</script>
+</body>
+</html>

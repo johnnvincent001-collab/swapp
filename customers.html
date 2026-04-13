@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Authorized Users - SWAPP</title>
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      background: #f5f6fa;
+      color: #333;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 2px 0 5px rgba(0,0,0,.05);
+      transition: width .3s;
+    }
+
+    .sidebar.minimized {
+      width: 80px;
+    }
+
+    .sidebar.minimized .brand,
+    .sidebar.minimized .text {
+      display: none;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+
+    .brand .a { color: #3498db; }
+    .brand .b { color: #dbae80; }
+
+    .nav {
+      list-style: none;
+    }
+
+    .nav li {
+      margin: 8px 0;
+      border-radius: 8px;
+    }
+
+    /* ✅ ACTIVE SIDEBAR ITEM */
+    .nav li.active {
+      background: #eaf2ff;
+      font-weight: bold;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: .25s ease;
+    }
+
+    .nav a:hover {
+      background: #f0f0f0;
+      transform: translateX(8px);
+    }
+
+    .material-symbols-outlined {
+      font-size: 22px;
+    }
+
+    .logout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 10px;
+      border-radius: 8px;
+    }
+
+    .logout:hover {
+      background: #f0f0f0;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .add-btn {
+      background: #3498db;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .add-btn:hover {
+      background: #2980b9;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      padding: 20px;
+    }
+
+    .search-box {
+      margin-bottom: 15px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #f5f5f5;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+    }
+
+    .modal-content input,
+    .modal-content select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal-content button {
+      background: #3498db;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div>
+    <button class="toggle-btn" id="toggleSidebar">☰</button>
+
+    <h1 class="brand">
+      <span class="a">SW</span><span class="b">APP</span>
+    </h1>
+
+    <ul class="nav">
+      <li><a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="text">Dashboard</span></a></li>
+
+      <!-- ✅ ACTIVE -->
+      <li class="active">
+        <a href="customers.html">
+          <span class="material-symbols-outlined">group</span>
+          <span class="text">Authorized Users</span>
+        </a>
+      </li>
+
+      <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
+      <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
+      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+    </ul>
+  </div>
+
+  <div class="logout" id="logoutBtn">
+    <span class="material-symbols-outlined">logout</span>
+    <span class="text">Logout</span>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="main-header">
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="add-btn" id="unlockPasswords" style="background:#111827;">Unlock passwords</button>
+      <button class="add-btn" id="openModal">+ Add User</button>
+    </div>
+  </div>
+
+  <h2>Authorized Users</h2>
+
+  <section class="card">
+    <div class="search-box">
+      <input id="search" type="text" placeholder="Search...">
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Access</th>
+          <th>Password</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="customerList"></tbody>
+    </table>
+  </section>
+</main>
+
+<div class="modal" id="customerModal">
+  <div class="modal-content">
+    <h3>Add Authorized User</h3>
+    <input id="custName" type="text" placeholder="Full Name">
+    <input id="custEmail" type="email" placeholder="Email">
+    <input id="custPassword" type="password" placeholder="Temporary Password">
+    <select id="custRole">
+      <option>Guest</option>
+      <option>Admin</option>
+    </select>
+    <button id="saveCustomer">Save</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
+    authDomain: "swapp-7d52b.firebaseapp.com",
+    projectId: "swapp-7d52b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // NOTE: This password is visible in the page source. If you deploy this publicly,
+  // anyone can discover it. A real "admin unlock" should be done with Firebase Auth + server rules.
+  const ADMIN_VIEW_PASSWORD = "654987321";
+  let passwordsUnlocked = sessionStorage.getItem("pwUnlocked") === "1";
+
+  // One-time fix: ensure "karon mat" has a password set
+  const KARON_TARGET_NAME = "karon mat";
+  const KARON_PASSWORD = "123456";
+  let karonFixAttempted = sessionStorage.getItem("karonFixAttempted") === "1";
+
+  // Keep latest snapshot in memory so we can re-render instantly (e.g. after unlock)
+  let authorizedUsers = [];
+
+  if (!localStorage.getItem("adminName")) {
+    window.location.href = "login.html";
+  }
+
+  toggleSidebar.onclick = () => sidebar.classList.toggle("minimized");
+
+  logoutBtn.onclick = () => {
+    localStorage.removeItem("adminName");
+    window.location.href = "login.html";
+  };
+
+  const modal = document.getElementById("customerModal");
+  openModal.onclick = () => modal.style.display = "flex";
+  window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+
+  function updateUnlockBtn() {
+    unlockPasswords.textContent = passwordsUnlocked ? "Lock passwords" : "Unlock passwords";
+  }
+
+  function canUseWeb(role) {
+    const normalized = String(role || "").toLowerCase().trim();
+    return normalized === "admin";
+  }
+
+  function renderUsers() {
+    const q = (search.value || "").toLowerCase();
+    customerList.innerHTML = "";
+
+    authorizedUsers
+      .filter(u => {
+        if (!q) return true;
+        const hay = `${u.full_name || ""} ${u.Email || ""} ${u.Role || ""}`.toLowerCase();
+        return hay.includes(q);
+      })
+      .forEach(u => {
+        const fullName = (u.full_name || "").toString().trim();
+        const passwordCell = passwordsUnlocked
+          ? (u.password || "--")
+          : (u.password ? "••••••••" : "--");
+
+        customerList.innerHTML += `
+          <tr>
+            <td><strong>${fullName}</strong><br><small>${u.Email || ""}</small></td>
+            <td>${u.Role || ""}${canUseWeb(u.Role) ? " (Web Access)" : " (No Web Access)"}</td>
+            <td>${passwordCell}</td>
+            <td>${u.joined || ""}</td>
+            <td><button class="add-btn edit-role-btn" data-id="${u.id}" style="padding:6px 10px;">Edit Role</button></td>
+          </tr>
+        `;
+      });
+
+    document.querySelectorAll(".edit-role-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const userId = btn.getAttribute("data-id");
+        const target = authorizedUsers.find(u => u.id === userId);
+        if (!target) return;
+
+        const currentRole = target.Role || "Guest";
+        const input = prompt(
+          `Set role for ${target.full_name || target.Email || "user"}\nType only: Admin or Guest`,
+          currentRole
+        );
+        if (input === null) return;
+
+        const normalized = input.trim().toLowerCase();
+        if (normalized !== "admin" && normalized !== "guest") {
+          alert("Invalid role. Please use Admin or Guest.");
+          return;
+        }
+
+        const finalRole = normalized === "admin" ? "Admin" : "Guest";
+        await updateDoc(doc(db, "authorized_users", userId), {
+          Role: finalRole,
+          web_access: canUseWeb(finalRole)
+        });
+      };
+    });
+  }
+
+  updateUnlockBtn();
+
+  unlockPasswords.onclick = () => {
+    if (passwordsUnlocked) {
+      passwordsUnlocked = false;
+      sessionStorage.removeItem("pwUnlocked");
+      updateUnlockBtn();
+      renderUsers();
+      return;
+    }
+
+    const entered = prompt("Enter admin password to view user passwords:");
+    if (entered === ADMIN_VIEW_PASSWORD) {
+      passwordsUnlocked = true;
+      sessionStorage.setItem("pwUnlocked", "1");
+      updateUnlockBtn();
+      renderUsers();
+    } else if (entered !== null) {
+      alert("Incorrect admin password.");
+    }
+  };
+
+  saveCustomer.onclick = async () => {
+    const name = custName.value.trim();
+    const email = custEmail.value.trim();
+    const password = custPassword.value;
+    const role = custRole.value;
+    const webAccess = canUseWeb(role);
+
+    if (name && email && password) {
+      await addDoc(collection(db, "authorized_users"), {
+        full_name: name,
+        full_name_lower: name.toLowerCase(),
+        Email: email.toLowerCase(),
+        password: password,
+        Role: role,
+        web_access: webAccess,
+        joined: new Date().toLocaleDateString()
+      });
+      custName.value = "";
+      custEmail.value = "";
+      custPassword.value = "";
+      modal.style.display = "none";
+    }
+  };
+
+  onSnapshot(collection(db, "authorized_users"), async snap => {
+    const updates = [];
+
+    authorizedUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    snap.forEach(docSnap => {
+      const c = docSnap.data();
+      const fullName = (c.full_name || "").toString().trim();
+
+      // Ensure full_name_lower exists for mobile app registration
+      if (fullName && !c.full_name_lower) {
+        updates.push(
+          updateDoc(doc(db, "authorized_users", docSnap.id), {
+            full_name_lower: fullName.toLowerCase()
+          })
+        );
+      }
+
+      if (!karonFixAttempted && fullName.toLowerCase() === KARON_TARGET_NAME) {
+        const currentPw = (c.password || "").toString();
+        if (!currentPw) {
+          updates.push(updateDoc(doc(db, "authorized_users", docSnap.id), { password: KARON_PASSWORD }));
+        }
+        karonFixAttempted = true;
+        sessionStorage.setItem("karonFixAttempted", "1");
+      }
+    });
+
+    if (updates.length) {
+      await Promise.allSettled(updates);
+    }
+
+    renderUsers();
+  });
+
+  search.oninput = renderUsers;
+</script>
+
+</body>
+</html>
