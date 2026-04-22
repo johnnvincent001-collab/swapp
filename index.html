@@ -201,13 +201,13 @@
             <li>
                 <a href="reward-points.html">
                     <span class="material-symbols-outlined">loyalty</span>
-                    <span class="text">Reward points</span>
+                    <span class="text">Reward Points</span>
                 </a>
             </li>
             <li>
                 <a href="reward-system.html">
                     <span class="material-symbols-outlined">tune</span>
-                    <span class="text">Reward tiers</span>
+                    <span class="text">Reward Tiers &amp; Logs</span>
                 </a>
             </li>
             <li>
@@ -216,7 +216,8 @@
                     <span class="text">ID Verification</span>
                 </a>
             </li>
-            <li>
+            <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+            <li style="display: none;">
                 <a href="settings.html">
                     <span class="material-symbols-outlined">settings</span>
                     <span class="text">Settings</span>
@@ -273,7 +274,10 @@
     import {
         getFirestore,
         collection,
-        onSnapshot
+        onSnapshot,
+        query,
+        orderBy,
+        limit
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
     if (!localStorage.getItem("adminName")) {
@@ -283,7 +287,8 @@
     const firebaseConfig = {
         apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
         authDomain: "swapp-7d52b.firebaseapp.com",
-        projectId: "swapp-7d52b"
+        projectId: "swapp-7d52b",
+        storageBucket: "swapp-7d52b.firebasestorage.app"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -296,9 +301,12 @@
     const notifInfo = document.getElementById("notifInfo");
 
     const seenClaimIds = new Set();
+    const seenRedemptionIds = new Set();
     let hasLoadedClaims = false;
+    let hasLoadedRedemptions = false;
 
     const CLAIMS_COLLECTION = "reward_claims";
+    const REDEMPTIONS_COLLECTION = "reward_redemptions";
     const POSTS_COLLECTION = "posts";
 
     function escapeHtml(text) {
@@ -323,13 +331,13 @@
     function notifyAdmin(message) {
         if (!("Notification" in window)) return;
         if (Notification.permission === "granted") {
-            new Notification("SWAPP Reward Claim", { body: message });
+            new Notification("SWAPP Recent Activity", { body: message });
             return;
         }
         if (Notification.permission !== "denied") {
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    new Notification("SWAPP Reward Claim", { body: message });
+                    new Notification("SWAPP Recent Activity", { body: message });
                 }
             });
         }
@@ -366,59 +374,140 @@
         totalDonationsEl.textContent = String(donations);
     });
 
-    onSnapshot(collection(db, CLAIMS_COLLECTION), snapshot => {
-        if (snapshot.empty) {
-            notifInfo.textContent = "No reward claim notifications yet.";
+    let latestClaims = [];
+    let latestRedemptions = [];
+
+    function toSortMs(value) {
+        if (!value) return 0;
+        try {
+            if (typeof value.toMillis === "function") return value.toMillis();
+            if (value?.toDate) return value.toDate().getTime();
+        } catch {}
+        if (typeof value === "number") return value;
+        if (typeof value === "string") {
+            const d = new Date(value);
+            const t = d.getTime();
+            return Number.isNaN(t) ? 0 : t;
+        }
+        return 0;
+    }
+
+    function renderRecentActivity() {
+        const merged = [...latestClaims, ...latestRedemptions]
+            .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0))
+            .slice(0, 25);
+
+        if (!merged.length) {
+            notifInfo.textContent = "No recent reward activity yet.";
             recentActivityBody.innerHTML = `
                 <tr>
-                    <td colspan="4">No recent reward claims.</td>
+                    <td colspan="4">No recent activity.</td>
                 </tr>
             `;
             return;
         }
 
-        const claims = snapshot.docs
+        const claimCount = merged.filter(x => x.kind === "claim").length;
+        const redeemCount = merged.filter(x => x.kind === "redeem").length;
+        notifInfo.textContent = `Showing ${merged.length} latest activity (Claims: ${claimCount}, Redemptions: ${redeemCount}).`;
+
+        recentActivityBody.innerHTML = merged.map(row => `
+            <tr>
+                <td>${escapeHtml(row.userName)}</td>
+                <td>${escapeHtml(row.rewardName)}</td>
+                <td>${escapeHtml(formatDate(row.whenRaw))}</td>
+                <td>${escapeHtml(row.status)}</td>
+            </tr>
+        `).join("");
+    }
+
+    onSnapshot(collection(db, CLAIMS_COLLECTION), snapshot => {
+        latestClaims = snapshot.docs
             .map(docSnap => ({ id: docSnap.id, ...(docSnap.data() || {}) }))
-            .sort((a, b) => {
-                const aRaw = a.claimedAt?.toDate ? a.claimedAt.toDate() : new Date(a.claimedAt || a.timestamp || a.date || 0);
-                const bRaw = b.claimedAt?.toDate ? b.claimedAt.toDate() : new Date(b.claimedAt || b.timestamp || b.date || 0);
-                return bRaw - aRaw;
-            })
-            .slice(0, 25);
+            .map(claim => {
+                const userName = claim.userName || claim.full_name || claim.name || claim.userId || "Unknown user";
+                const rewardName = claim.rewardName || claim.reward || `${claim.points || 0} points reward`;
+                const whenRaw = claim.claimedAt || claim.timestamp || claim.date;
+                const status = claim.status || "Claimed";
+                return {
+                    kind: "claim",
+                    id: claim.id,
+                    userName,
+                    rewardName,
+                    whenRaw,
+                    status,
+                    sortMs: toSortMs(whenRaw)
+                };
+            });
 
-        notifInfo.textContent = `Showing ${claims.length} latest reward claim notification(s).`;
-        recentActivityBody.innerHTML = "";
-
-        claims.forEach(claim => {
-            const userName = claim.userName || claim.full_name || claim.name || claim.userId || "Unknown user";
-            const rewardName = claim.rewardName || claim.reward || `${claim.points || 0} points reward`;
-            const claimedAt = claim.claimedAt || claim.timestamp || claim.date;
-            const status = claim.status || "Claimed";
-
-            if (hasLoadedClaims && !seenClaimIds.has(claim.id)) {
-                notifyAdmin(`${userName} claimed ${rewardName}`);
-            }
-            seenClaimIds.add(claim.id);
-
-            recentActivityBody.innerHTML += `
-                <tr>
-                    <td>${escapeHtml(userName)}</td>
-                    <td>${escapeHtml(rewardName)}</td>
-                    <td>${escapeHtml(formatDate(claimedAt))}</td>
-                    <td>${escapeHtml(status)}</td>
-                </tr>
-            `;
-        });
+        latestClaims
+            .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0))
+            .slice(0, 50)
+            .forEach(item => {
+                if (hasLoadedClaims && !seenClaimIds.has(item.id)) {
+                    notifyAdmin(`${item.userName} claimed ${item.rewardName}`);
+                }
+                seenClaimIds.add(item.id);
+            });
 
         hasLoadedClaims = true;
+        renderRecentActivity();
     }, error => {
-        notifInfo.textContent = "Unable to load reward claim notifications.";
+        notifInfo.textContent = "Unable to load reward activity.";
         recentActivityBody.innerHTML = `
             <tr>
                 <td colspan="4">${escapeHtml(error?.message || "Unknown error")}</td>
             </tr>
         `;
     });
+
+    onSnapshot(
+        query(collection(db, REDEMPTIONS_COLLECTION), orderBy("createdAt", "desc"), limit(200)),
+        snapshot => {
+            latestRedemptions = snapshot.docs
+                .map(docSnap => ({ id: docSnap.id, ...(docSnap.data() || {}) }))
+                .map(red => {
+                    const userName = red.userName || red.full_name || red.name || red.userId || "Unknown user";
+                    const pts = red.redeemedPoints != null ? red.redeemedPoints : (red.points || "");
+                    const items = (red.items || "").toString().trim();
+                    const rewardName = items
+                        ? `Redeemed ${pts} pts • ${items}`
+                        : `Redeemed ${pts} pts`;
+                    const whenRaw = red.createdAt || red.timestamp || red.date;
+                    const status = red.status || "Redeemed";
+                    return {
+                        kind: "redeem",
+                        id: red.id,
+                        userName,
+                        rewardName,
+                        whenRaw,
+                        status,
+                        sortMs: toSortMs(whenRaw)
+                    };
+                });
+
+            latestRedemptions
+                .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0))
+                .slice(0, 50)
+                .forEach(item => {
+                    if (hasLoadedRedemptions && !seenRedemptionIds.has(item.id)) {
+                        notifyAdmin(`${item.userName} redeemed rewards`);
+                    }
+                    seenRedemptionIds.add(item.id);
+                });
+
+            hasLoadedRedemptions = true;
+            renderRecentActivity();
+        },
+        error => {
+            notifInfo.textContent = "Unable to load reward activity.";
+            recentActivityBody.innerHTML = `
+                <tr>
+                    <td colspan="4">${escapeHtml(error?.message || "Unknown error")}</td>
+                </tr>
+            `;
+        }
+    );
 </script>
 
 </body>
