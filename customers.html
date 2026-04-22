@@ -218,6 +218,32 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-delete-user {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-delete-user:hover:not(:disabled) {
+      background: #a93226;
+    }
+
+    .btn-delete-user:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -244,9 +270,11 @@
 
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
-      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
-      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
-      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
+      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
+      <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;"><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
     </ul>
   </div>
 
@@ -302,12 +330,24 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    doc,
+    updateDoc,
+    query,
+    where,
+    getDocs,
+    writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -350,6 +390,27 @@
     return normalized === "admin";
   }
 
+  /**
+   * Hard-delete `authorized_users` and any `users` docs (Reward Points) whose Email/email
+   * matches (lowercase). Single batch so nothing is half-deleted on failure.
+   */
+  async function cascadeDeleteAuthorizedUser(authorizedDocId, emailRaw) {
+    const emailNorm = (emailRaw || "").toString().trim().toLowerCase();
+    const userIds = new Set();
+    if (emailNorm) {
+      const q1 = query(collection(db, "users"), where("Email", "==", emailNorm));
+      const q2 = query(collection(db, "users"), where("email", "==", emailNorm));
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      snap1.docs.forEach(d => userIds.add(d.id));
+      snap2.docs.forEach(d => userIds.add(d.id));
+    }
+    const b = writeBatch(db);
+    userIds.forEach(uid => b.delete(doc(db, "users", uid)));
+    b.delete(doc(db, "authorized_users", authorizedDocId));
+    await b.commit();
+    return userIds.size;
+  }
+
   function renderUsers() {
     const q = (search.value || "").toLowerCase();
     customerList.innerHTML = "";
@@ -372,7 +433,10 @@
             <td>${u.Role || ""}${canUseWeb(u.Role) ? " (Web Access)" : " (No Web Access)"}</td>
             <td>${passwordCell}</td>
             <td>${u.joined || ""}</td>
-            <td><button class="add-btn edit-role-btn" data-id="${u.id}" style="padding:6px 10px;">Edit Role</button></td>
+            <td class="action-buttons">
+              <button type="button" class="add-btn edit-role-btn" data-id="${u.id}" style="padding:6px 10px;">Edit Role</button>
+              <button type="button" class="btn-delete-user delete-user-btn" data-id="${u.id}">Delete</button>
+            </td>
           </tr>
         `;
       });
@@ -401,6 +465,47 @@
           Role: finalRole,
           web_access: canUseWeb(finalRole)
         });
+      };
+    });
+
+    document.querySelectorAll(".delete-user-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const userId = btn.getAttribute("data-id");
+        const target = authorizedUsers.find(u => u.id === userId);
+        if (!target) return;
+
+        const namePart = (target.full_name || "").toString().trim();
+        const emailPart = (target.Email || "").toString().trim();
+        const label =
+          namePart && emailPart
+            ? `${namePart} (${emailPart})`
+            : namePart || emailPart || userId;
+
+        const emailNorm = emailPart.toLowerCase();
+        const ok = window.confirm(
+          `Permanently delete this authorized user?\n\n${label}\n\n` +
+            (emailNorm
+              ? `Any app profile in Reward Points with the same email (${emailNorm}) will also be removed (points and user row).\n\n`
+              : `No email on file — only admin access will be removed (no app user matched by email).\n\n`) +
+            `They will no longer be able to sign in to the admin site. This cannot be undone.`
+        );
+        if (!ok) return;
+
+        btn.disabled = true;
+        try {
+          const removedProfiles = await cascadeDeleteAuthorizedUser(userId, emailPart);
+          if (emailNorm && removedProfiles > 0) {
+            window.alert(
+              `Removed admin access and deleted ${removedProfiles} matching app user profile(s) (Reward Points).`
+            );
+          }
+        } catch (err) {
+          console.error(err);
+          window.alert(
+            "Could not delete user: " + (err && err.message ? err.message : String(err))
+          );
+          btn.disabled = false;
+        }
       };
     });
   }
@@ -491,3 +596,4 @@
 
 </body>
 </html>
+
