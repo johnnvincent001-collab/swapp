@@ -177,6 +177,38 @@
       transform: translateY(-1px);
     }
 
+    .report-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-delete-report {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #c0392b;
+      background: #c0392b;
+      color: #fff;
+      font-weight: 600;
+      font-size: inherit;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: .2s ease;
+    }
+
+    .btn-delete-report:hover:not(:disabled) {
+      background: #a93226;
+      border-color: #a93226;
+    }
+
+    .btn-delete-report:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     /* Status colors */
     .status-open {
       color: green;
@@ -234,13 +266,13 @@
       <li>
         <a href="reward-points.html">
           <span class="material-symbols-outlined">loyalty</span>
-          <span class="text">Reward points</span>
+          <span class="text">Reward Points</span>
         </a>
       </li>
       <li>
         <a href="reward-system.html">
           <span class="material-symbols-outlined">tune</span>
-          <span class="text">Reward tiers</span>
+          <span class="text">Reward Tiers &amp; Logs</span>
         </a>
       </li>
       <li>
@@ -249,7 +281,8 @@
           <span class="text">ID Verification</span>
         </a>
       </li>
-      <li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;">
         <a href="settings.html">
           <span class="material-symbols-outlined">settings</span>
           <span class="text">Settings</span>
@@ -294,12 +327,21 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    doc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -360,9 +402,10 @@
           <td>
             ${submittedDate ? submittedDate.toLocaleDateString() : "N/A"}
           </td>
-          <td>
+          <td class="report-actions">
             <a class="view-link" href="report-view.html?id=${encodeURIComponent(docSnap.id)}">View</a>
-            ${canClose ? `<button class="view-link" style="margin-left:8px" data-action="close" data-id="${docSnap.id}">Close</button>` : ``}
+            ${canClose ? `<button type="button" class="view-link" data-action="close" data-id="${docSnap.id}">Close</button>` : ``}
+            <button type="button" class="btn-delete-report" data-action="delete" data-id="${docSnap.id}">Delete</button>
           </td>
         </tr>
       `;
@@ -379,8 +422,27 @@
       .replaceAll("'", "&#039;");
   }
 
-  // Close/Solve action
+  // Close report, hard delete report
   document.addEventListener("click", async (e) => {
+    const delBtn = e.target?.closest?.('button[data-action="delete"]');
+    if (delBtn) {
+      const id = delBtn.getAttribute("data-id");
+      if (!id) return;
+      const ok = window.confirm(
+        `Permanently delete this report?\n\n#${id}\n\nThis cannot be undone.`
+      );
+      if (!ok) return;
+      delBtn.disabled = true;
+      try {
+        await deleteDoc(doc(db, "reports", id));
+      } catch (err) {
+        console.error(err);
+        window.alert("Failed to delete report: " + (err?.message || err));
+        delBtn.disabled = false;
+      }
+      return;
+    }
+
     const btn = e.target?.closest?.('button[data-action="close"]');
     if (!btn) return;
     const id = btn.getAttribute("data-id");
