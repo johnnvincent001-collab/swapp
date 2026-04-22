@@ -169,10 +169,21 @@
       background: #2980b9;
     }
   </style>
+  <!-- SETTINGS_PAGE_DISABLED: redirect anyone who opens settings.html directly. Delete this script to re-enable the page. -->
+  <script>
+    (function () {
+      if (!localStorage.getItem("adminName")) {
+        window.location.replace("login.html");
+        return;
+      }
+      window.location.replace("index.html");
+    })();
+  </script>
 </head>
 
 <body>
 
+  
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div>
@@ -210,16 +221,23 @@
       <li>
         <a href="reward-points.html">
           <span class="material-symbols-outlined">loyalty</span>
-          <span class="text">Reward points</span>
+          <span class="text">Reward Points</span>
         </a>
       </li>
       <li>
         <a href="reward-system.html">
           <span class="material-symbols-outlined">tune</span>
-          <span class="text">Reward tiers</span>
+          <span class="text">Reward Tiers &amp; Logs</span>
         </a>
       </li>
       <li>
+        <a href="verification.html">
+          <span class="material-symbols-outlined">badge</span>
+          <span class="text">ID Verification</span>
+        </a>
+      </li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;">
         <a href="settings.html" class="active">
           <span class="material-symbols-outlined">settings</span>
           <span class="text">Settings</span>
@@ -228,7 +246,7 @@
     </ul>
   </div>
 
-  <div class="logout">
+  <div class="logout" id="logoutBtn">
     <span class="material-symbols-outlined">logout</span>
     <span class="text">Logout</span>
   </div>
@@ -318,6 +336,11 @@
 
   toggleBtn.addEventListener("click", () => {
     sidebar.classList.toggle("minimized");
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    localStorage.removeItem("adminName");
+    window.location.href = "login.html";
   });
 </script>
 
