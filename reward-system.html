@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reward tiers - SWAPP</title>
+  <title>Reward Tiers & Logs - SWAPP</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
@@ -55,6 +55,7 @@
       margin-bottom: 20px;
       max-width: 520px;
     }
+    .card-wide { max-width: 980px; }
     .tier-row {
       display: flex;
       align-items: center;
@@ -90,6 +91,28 @@
     .msg.err { color: #b42318; }
     .msg.ok { color: #0f5132; }
     .hint { font-size: 13px; color: #666; margin-top: 16px; line-height: 1.4; }
+    .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin: 10px 0 12px; }
+    .controls input[type="search"]{ width: 100%; max-width: 420px; padding: 10px 12px; border:1px solid #ccc; border-radius:8px; }
+    .controls select{ padding: 9px 10px; border:1px solid #ccc; border-radius:8px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; text-align:left; vertical-align: middle; border-bottom:1px solid #eee; }
+    th { background:#f5f5f5; font-size: 13px; }
+    tr:nth-child(even) { background:#fafafa; }
+    .uid { font-size: 11px; color: #888; word-break: break-all; max-width: 220px; }
+    .pill { display:inline-block; font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background:#eef2ff; color:#1f5fbf; }
+    .pill.claim { background:#ecfdf3; color:#027a48; }
+    .pill.redeem { background:#fff7ed; color:#9a3412; }
+    .mono { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+    .reward-edit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+    .reward-edit-card { border: 1px solid #eee; border-radius: 12px; padding: 14px; background: #fff; }
+    .reward-edit-card h4 { font-size: 14px; margin-bottom: 10px; }
+    .reward-edit-row { display:flex; flex-direction:column; gap:8px; }
+    .reward-edit-row input[type="text"] { width:100%; padding: 10px 12px; border:1px solid #ccc; border-radius:8px; }
+    .reward-edit-row input[type="file"] { width:100%; }
+    .reward-edit-preview { width:100%; height:150px; border-radius:10px; border:1px solid #e5e7eb; background:#f8fafc; object-fit:cover; }
+    .reward-edit-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top: 6px; }
+    .btn-outline { background: #fff; color:#1f5fbf; border:1px solid #1f5fbf; }
+    .small { font-size: 12px; color:#666; line-height:1.35; }
   </style>
 </head>
 <body>
@@ -105,10 +128,11 @@
       <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
-      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
-      <li class="active"><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
+      <li class="active"><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
       <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
-      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;"><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
     </ul>
   </div>
   <div class="logout" id="logoutBtn">
@@ -118,7 +142,7 @@
 </aside>
 
 <main class="main">
-  <h2>Reward tiers</h2>
+  <h2>Reward Tiers &amp; Logs</h2>
   <p class="sub">
     Set the five point thresholds shown in the mobile app’s Rewards screen (from lowest to highest).
     Only this admin site can change these values or deduct users’ balances for redemptions.
@@ -142,6 +166,85 @@
       Tiers must be strictly increasing (each value greater than the previous). The app shows five claim buttons using these amounts.
     </p>
   </section>
+
+  <section class="card card-wide">
+    <h3 style="font-size:18px; margin-bottom:8px;">Reward logs</h3>
+    <p class="sub" style="margin-bottom:0;">
+      View recent completed redemptions (points redeemed + item(s) claimed) logged by admins. This pulls from <code>reward_redemptions</code>.
+    </p>
+    <div class="controls">
+      <input id="logSearch" type="search" placeholder="Search by user name, user id, admin name, item…" autocomplete="off">
+      <select id="logFilter">
+        <option value="all">All</option>
+        <option value="redeem">Redemptions</option>
+      </select>
+    </div>
+    <div id="logStatus" class="msg" role="status"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Type</th>
+          <th>User</th>
+          <th>Admin</th>
+          <th>Points</th>
+          <th>Details</th>
+          <th>Doc</th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </section>
+
+  <section class="card card-wide">
+    <h3 style="font-size:18px; margin-bottom:8px;">Picture editable rewards</h3>
+    <p class="sub" style="margin-bottom:0;">
+      Update reward names and pictures shown in the mobile app. Choosing a file only previews locally; nothing uploads until you click <strong>Save changes</strong>.
+      When you save, the image uploads to <strong>Cloudinary</strong> (unsigned preset, same approach as the mobile app) and the returned URL is saved to <code>app_settings/rewards</code>.
+    </p>
+    <div id="rewardEditStatus" class="msg" role="status"></div>
+
+    <div class="reward-edit-grid">
+      <div class="reward-edit-card" data-reward-idx="1">
+        <h4>Reward 1</h4>
+        <div class="reward-edit-row">
+          <img id="reward1Preview" class="reward-edit-preview" alt="Reward 1 preview">
+          <input id="reward1Name" type="text" placeholder="Reward name">
+          <input id="reward1File" type="file" accept="image/*">
+          <div class="reward-edit-actions">
+            <button id="reward1SaveChanges" type="button" class="btn">Save changes</button>
+          </div>
+          <div id="reward1Meta" class="small"></div>
+        </div>
+      </div>
+
+      <div class="reward-edit-card" data-reward-idx="2">
+        <h4>Reward 2</h4>
+        <div class="reward-edit-row">
+          <img id="reward2Preview" class="reward-edit-preview" alt="Reward 2 preview">
+          <input id="reward2Name" type="text" placeholder="Reward name">
+          <input id="reward2File" type="file" accept="image/*">
+          <div class="reward-edit-actions">
+            <button id="reward2SaveChanges" type="button" class="btn">Save changes</button>
+          </div>
+          <div id="reward2Meta" class="small"></div>
+        </div>
+      </div>
+
+      <div class="reward-edit-card" data-reward-idx="3">
+        <h4>Reward 3</h4>
+        <div class="reward-edit-row">
+          <img id="reward3Preview" class="reward-edit-preview" alt="Reward 3 preview">
+          <input id="reward3Name" type="text" placeholder="Reward name">
+          <input id="reward3File" type="file" accept="image/*">
+          <div class="reward-edit-actions">
+            <button id="reward3SaveChanges" type="button" class="btn">Save changes</button>
+          </div>
+          <div id="reward3Meta" class="small"></div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <script type="module">
@@ -151,6 +254,10 @@
     getFirestore,
     doc,
     onSnapshot,
+    collection,
+    query,
+    orderBy,
+    limit,
     setDoc,
     Timestamp
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
@@ -162,7 +269,8 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
 
   const DEFAULTS = [100, 200, 300, 400, 500];
@@ -176,10 +284,248 @@
   const statusMsg = document.getElementById("statusMsg");
   const saveBtn = document.getElementById("saveBtn");
   const inputs = [1, 2, 3, 4, 5].map(n => document.getElementById("t" + n));
+  const logSearch = document.getElementById("logSearch");
+  const logFilter = document.getElementById("logFilter");
+  const logStatus = document.getElementById("logStatus");
+  const logBody = document.getElementById("logBody");
+  const rewardEditStatus = document.getElementById("rewardEditStatus");
+
+  const DEFAULT_REWARD_NAMES = [
+    "Pencil Case",
+    "Tote bag",
+    "Tote bag (customizable size) + Pencil Case"
+  ];
+
+  /** @type {Record<number, string|null>} */
+  const localPreviewObjectUrlByIdx = { 1: null, 2: null, 3: null };
+
+  let redemptionLogs = [];
+  let logFilterText = "";
 
   function setStatus(text, kind) {
     statusMsg.textContent = text || "";
     statusMsg.className = "msg" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+  }
+
+  function setLogStatus(text, kind) {
+    logStatus.textContent = text || "";
+    logStatus.className = "msg" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+  }
+
+  function setRewardEditStatus(text, kind) {
+    rewardEditStatus.textContent = text || "";
+    rewardEditStatus.className = "msg" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+  }
+
+  function formatBytes(n) {
+    const num = Number(n) || 0;
+    if (num < 1024) return `${Math.round(num)} B`;
+    if (num < 1024 * 1024) return `${(num / 1024).toFixed(1)} KB`;
+    return `${(num / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function setRewardMeta(idx, text) {
+    const metaEl = document.getElementById(`reward${idx}Meta`);
+    if (metaEl) metaEl.textContent = text || "";
+  }
+
+  function setAllSaveChangesDisabled(disabled) {
+    [1, 2, 3].forEach(i => {
+      const btn = document.getElementById(`reward${i}SaveChanges`);
+      if (btn) btn.disabled = disabled;
+    });
+  }
+
+  // Must match `app/src/main/java/com/example/swapp/utils/CloudinaryConfig.java`
+  const CLOUDINARY_CLOUD_NAME = "dtox3so6j";
+  const CLOUDINARY_UPLOAD_PRESET = "swapp_unsigned";
+
+  async function uploadRewardImageToCloudinary(blob, { rewardIdx }) {
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const fd = new FormData();
+    fd.append("file", blob, `reward${rewardIdx}.jpg`);
+    fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+    fd.append("folder", "swapp/rewards");
+    fd.append("tags", `reward${rewardIdx},swapp_admin`);
+
+    let resp;
+    try {
+      resp = await fetch(endpoint, { method: "POST", body: fd });
+    } catch (e) {
+      const msg = e?.message || String(e);
+      const lower = msg.toLowerCase();
+      if (lower.includes("failed to fetch") || lower.includes("networkerror")) {
+        throw new Error(`Could not reach Cloudinary upload API (${endpoint}). Check your internet connection / firewall.`);
+      }
+      throw e;
+    }
+
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const errMsg = json?.error?.message || json?.error || `Cloudinary upload failed (${resp.status})`;
+      throw new Error(String(errMsg));
+    }
+
+    const url = String(json.secure_url || json.url || "").trim();
+    if (!url) throw new Error("Cloudinary returned no image URL.");
+    return url;
+  }
+
+  async function compressImageFile(file, { maxDim = 1280, quality = 0.82, mimeType = "image/jpeg" } = {}) {
+    if (!file || !file.type || !String(file.type).startsWith("image/")) return { blob: file, mimeType: file?.type || mimeType, changed: false };
+
+    // If the file is already small, skip recompressing to preserve quality.
+    const rawSize = Number(file.size) || 0;
+    if (rawSize > 0 && rawSize <= 600 * 1024) {
+      return { blob: file, mimeType: file.type, changed: false };
+    }
+
+    // Decode image (prefer createImageBitmap for speed).
+    let img = null;
+    let width = 0;
+    let height = 0;
+    try {
+      img = await createImageBitmap(file);
+      width = img.width;
+      height = img.height;
+    } catch {
+      // Fallback for older browsers
+      const url = URL.createObjectURL(file);
+      try {
+        img = await new Promise((resolve, reject) => {
+          const el = new Image();
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = url;
+        });
+        width = img.naturalWidth || img.width || 0;
+        height = img.naturalHeight || img.height || 0;
+      } finally {
+        try { URL.revokeObjectURL(url); } catch {}
+      }
+    }
+
+    if (!width || !height) {
+      // If decode failed, just upload the original.
+      try { if (img?.close) img.close(); } catch {}
+      return { blob: file, mimeType: file.type, changed: false };
+    }
+
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    const targetW = Math.max(1, Math.round(width * scale));
+    const targetH = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) {
+      try { if (img?.close) img.close(); } catch {}
+      return { blob: file, mimeType: file.type, changed: false };
+    }
+
+    // Improve downscale quality.
+    try {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+    } catch {}
+
+    ctx.drawImage(img, 0, 0, targetW, targetH);
+    try { if (img?.close) img.close(); } catch {}
+
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b), mimeType, quality);
+    });
+
+    if (!blob) {
+      return { blob: file, mimeType: file.type, changed: false };
+    }
+
+    // If compression didn't help, upload the original.
+    if ((Number(blob.size) || 0) >= rawSize) {
+      return { blob: file, mimeType: file.type, changed: false };
+    }
+
+    return { blob, mimeType, changed: true, originalBytes: rawSize, compressedBytes: blob.size, width, height, targetW, targetH };
+  }
+
+  function revokeLocalPreview(idx) {
+    const prev = localPreviewObjectUrlByIdx[idx];
+    if (!prev) return;
+    try { URL.revokeObjectURL(prev); } catch {}
+    localPreviewObjectUrlByIdx[idx] = null;
+  }
+
+  function hasPendingRewardFile(idx) {
+    const fileEl = document.getElementById(`reward${idx}File`);
+    return !!(fileEl && fileEl.files && fileEl.files[0]);
+  }
+
+  function escapeHtml(text) {
+    return String(text ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatWhen(ts) {
+    if (!ts) return "";
+    try {
+      const d = typeof ts.toDate === "function" ? ts.toDate() : null;
+      return d ? d.toLocaleString() : "";
+    } catch {
+      return "";
+    }
+  }
+
+  function haystack(row) {
+    return [
+      row.userName,
+      row.userId,
+      row.adminName,
+      row.items,
+      row.reason,
+      row.__docId
+    ].filter(Boolean).join(" ").toLowerCase();
+  }
+
+  function mergedLogs() {
+    const filter = (logFilter.value || "all").toLowerCase();
+    const q = logFilterText.trim().toLowerCase();
+    const all = [...redemptionLogs];
+    let list = all;
+    if (filter === "redeem") list = all.filter(r => r.kind === "redeem");
+    if (q) list = list.filter(r => haystack(r).includes(q));
+    list.sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0));
+    return list;
+  }
+
+  function renderLogs() {
+    const list = mergedLogs();
+    if (!list.length) {
+      logBody.innerHTML = `<tr><td colspan="7">No logs yet.</td></tr>`;
+      return;
+    }
+    logBody.innerHTML = list.slice(0, 150).map(r => {
+      const when = escapeHtml(r.whenText || "");
+      const type = `<span class="pill redeem">Redeem</span>`;
+      const user = `${escapeHtml(r.userName || "Unknown")}<div class="uid">${escapeHtml(r.userId || "")}</div>`;
+      const admin = escapeHtml(r.adminName || "Admin");
+      const pts = r.points != null ? `<span class="mono">${escapeHtml(String(r.points))}</span>` : "";
+      const details = escapeHtml(r.details || "");
+      const docId = `<span class="uid">${escapeHtml(r.__docId || "")}</span>`;
+      return `<tr>
+        <td>${when}</td>
+        <td>${type}</td>
+        <td>${user}</td>
+        <td>${admin}</td>
+        <td>${pts}</td>
+        <td>${details}</td>
+        <td>${docId}</td>
+      </tr>`;
+    }).join("");
   }
 
   function fillForm(values) {
@@ -252,6 +598,15 @@
     if (!snap.exists()) {
       fillForm(DEFAULTS);
       setStatus("No saved configuration yet — defaults shown. Click Save tiers to create it.", "");
+      // Still fill editable rewards with defaults
+      for (let i = 1; i <= 3; i++) {
+        const nameEl = document.getElementById(`reward${i}Name`);
+        const prevEl = document.getElementById(`reward${i}Preview`);
+        const metaEl = document.getElementById(`reward${i}Meta`);
+        if (nameEl) nameEl.value = DEFAULT_REWARD_NAMES[i - 1];
+        if (prevEl && !hasPendingRewardFile(i)) prevEl.removeAttribute("src");
+        if (metaEl) metaEl.textContent = "No picture uploaded yet.";
+      }
       return;
     }
     const d = snap.data() || {};
@@ -262,8 +617,171 @@
     const err = validateTiers(fromDoc);
     fillForm(err ? DEFAULTS : fromDoc);
     if (err) setStatus("Stored tiers were invalid; showing defaults in the form. Save to fix.", "err");
+
+    // Editable rewards (names + pictures)
+    for (let i = 1; i <= 3; i++) {
+      const nameEl = document.getElementById(`reward${i}Name`);
+      const prevEl = document.getElementById(`reward${i}Preview`);
+      const metaEl = document.getElementById(`reward${i}Meta`);
+      const name = String(d[`reward${i}Name`] || DEFAULT_REWARD_NAMES[i - 1] || "").trim();
+      const url = String(d[`reward${i}ImageUrl`] || "").trim();
+      if (nameEl) nameEl.value = name;
+      // If the admin is mid-edit with a pending file selection, don't overwrite the preview from Firestore.
+      if (prevEl && !hasPendingRewardFile(i)) {
+        if (url) prevEl.src = url;
+        else prevEl.removeAttribute("src");
+      }
+      if (metaEl) metaEl.textContent = url ? "Picture saved." : "No picture uploaded yet.";
+    }
   }, err => {
     setStatus("Could not load settings: " + (err?.message || err), "err");
+  });
+
+  async function saveRewardChanges(idx) {
+    const nameEl = document.getElementById(`reward${idx}Name`);
+    const fileEl = document.getElementById(`reward${idx}File`);
+    const saveChangesBtn = document.getElementById(`reward${idx}SaveChanges`);
+
+    const rawName = nameEl ? nameEl.value : "";
+    const name = String(rawName || "").trim();
+    if (!name) {
+      setRewardEditStatus("Enter a reward name first.", "err");
+      return;
+    }
+
+    const file = fileEl && fileEl.files ? fileEl.files[0] : null;
+
+    setRewardEditStatus(file ? "Preparing upload…" : "Saving name…", "");
+    setAllSaveChangesDisabled(true);
+    // Keep Firestore writes unauthenticated to match existing rules behavior.
+    await signOut(auth).catch(() => {});
+
+    try {
+      const payload = {
+        [`reward${idx}Name`]: name,
+        updatedAt: Timestamp.now()
+      };
+
+      if (file) {
+        setRewardEditStatus("Compressing image…", "");
+        setRewardMeta(idx, "Compressing image…");
+
+        const compressed = await compressImageFile(file, { maxDim: 1280, quality: 0.82, mimeType: "image/jpeg" });
+        const blob = compressed?.blob || file;
+        const contentType = compressed?.mimeType || (file.type || "image/jpeg");
+
+        if (compressed?.changed) {
+          const orig = formatBytes(compressed.originalBytes);
+          const comp = formatBytes(compressed.compressedBytes);
+          setRewardMeta(idx, `Compressed: ${orig} → ${comp} (${compressed.targetW}×${compressed.targetH})`);
+        } else {
+          setRewardMeta(idx, `Using original: ${formatBytes(file.size)}`);
+        }
+
+        setRewardEditStatus("Uploading picture (Cloudinary)…", "");
+        const url = await uploadRewardImageToCloudinary(blob, { rewardIdx: idx });
+        payload[`reward${idx}ImageUrl`] = url;
+      }
+
+      setRewardEditStatus(file ? "Saving Firestore link…" : "Saving…", "");
+      await setDoc(settingsRef, payload, { merge: true });
+
+      // Clear pending file selection after successful publish
+      if (fileEl) fileEl.value = "";
+      revokeLocalPreview(idx);
+
+      setRewardEditStatus(file ? "Saved name + published picture." : "Saved name.", "ok");
+      setRewardMeta(idx, file ? "Picture saved." : (document.getElementById(`reward${idx}Meta`)?.textContent || ""));
+    } catch (e) {
+      const msg = e?.message || String(e);
+      const lower = msg.toLowerCase();
+      let hint = "";
+      if (lower.includes("not authorized")) {
+        hint = " Your account is not allowed to upload reward images.";
+      } else if (lower.includes("could not reach cloudinary")) {
+        hint = " Check your internet connection / firewall, or verify your Cloudinary cloud name + unsigned upload preset.";
+      } else if (lower.includes("missing or insufficient permissions") || lower.includes("permission-denied")) {
+        hint = " This is Firestore security rules. Publish/deploy the latest `firestore.rules` from this repo (it must allow `app_settings/rewards` reward fields), then hard refresh this page.";
+      } else if (lower.includes("network") || lower.includes("failed to fetch")) {
+        hint = " Network issue while talking to Firebase. Check your connection and try again.";
+      }
+      setRewardEditStatus("Save failed: " + msg + hint, "err");
+      setRewardMeta(idx, "Upload failed. See message above.");
+    } finally {
+      setAllSaveChangesDisabled(false);
+    }
+  }
+
+  // Wire buttons
+  [1, 2, 3].forEach(i => {
+    const saveChangesBtn = document.getElementById(`reward${i}SaveChanges`);
+    if (saveChangesBtn) saveChangesBtn.addEventListener("click", () => saveRewardChanges(i));
+
+    // Instant local preview (before upload)
+    const fileEl = document.getElementById(`reward${i}File`);
+    const prevEl = document.getElementById(`reward${i}Preview`);
+    if (fileEl && prevEl) {
+      fileEl.addEventListener("change", () => {
+        const f = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+        if (!f) return;
+        try {
+          revokeLocalPreview(i);
+          const objUrl = URL.createObjectURL(f);
+          localPreviewObjectUrlByIdx[i] = objUrl;
+          prevEl.src = objUrl;
+        } catch {}
+      });
+    }
+  });
+
+  // Reward logs: show recent completed redemptions (redeem + claim items).
+  const redemptionRef = collection(db, "reward_redemptions");
+
+  setLogStatus("Loading logs…", "");
+
+  onSnapshot(
+    query(redemptionRef, orderBy("createdAt", "desc"), limit(200)),
+    snap => {
+      redemptionLogs = snap.docs.map(d => {
+        const x = d.data() || {};
+        const when = x.createdAt || null;
+        const points = x.redeemedPoints != null ? x.redeemedPoints : null;
+        const userId = x.userId || "";
+        const prev = x.previousPoints;
+        const next = x.newPoints;
+        const details =
+          `Redeemed ${points ?? ""} pts`
+          + (prev != null && next != null ? ` • ${prev} → ${next}` : "")
+          + (x.items ? ` • Items: ${x.items}` : "");
+        return {
+          kind: "redeem",
+          __docId: d.id,
+          userId,
+          userName: x.userName || "",
+          adminName: x.adminName || "",
+          reason: "redeem_and_claim",
+          items: x.items || "",
+          points,
+          details,
+          whenText: formatWhen(when),
+          sortMs: when && typeof when.toMillis === "function" ? when.toMillis() : 0
+        };
+      });
+      renderLogs();
+      setLogStatus("", "");
+    },
+    err => {
+      setLogStatus("Could not load redemption logs: " + (err?.message || err), "err");
+    }
+  );
+
+  logSearch.addEventListener("input", () => {
+    logFilterText = logSearch.value || "";
+    renderLogs();
+  });
+
+  logFilter.addEventListener("change", () => {
+    renderLogs();
   });
 
   document.getElementById("toggleSidebar").addEventListener("click", () => {
