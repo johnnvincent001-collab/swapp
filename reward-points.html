@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reward points - SWAPP</title>
+  <title>Reward Points - SWAPP</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
@@ -88,6 +88,8 @@
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .btn-delta { background: #1f5fbf; }
     .btn-set { background: #1f8f4c; }
+    .btn-view { background: #6b7280; }
+    .btn-danger { background: #b42318; }
     .uid { font-size: 11px; color: #888; word-break: break-all; max-width: 140px; }
 
     .msg { font-size: 14px; margin-top: 12px; }
@@ -108,10 +110,11 @@
       <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
-      <li class="active"><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
-      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li class="active"><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
+      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
       <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
-      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;"><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
     </ul>
   </div>
   <div class="logout" id="logoutBtn">
@@ -121,11 +124,11 @@
 </aside>
 
 <main class="main">
-  <h2>Reward points</h2>
+  <h2>Reward Points</h2>
   <p class="sub">
     Adjust seller reward balances stored on each app user document (<code>users</code> → <code>points</code>).
-    Use a positive or negative amount to add or remove points, or set an exact total. Changes sync to the mobile app in real time.
-    To change the five claim thresholds shown in the app, open <a href="reward-system.html">Reward tiers</a>.
+    Use <strong>Redeem points</strong> to deduct a user’s balance when they redeem rewards. Changes sync to the mobile app in real time.
+    To change the five claim thresholds shown in the app, open <a href="reward-system.html">Reward Tiers &amp; Logs</a>.
   </p>
 
   <section class="card">
@@ -139,14 +142,50 @@
           <th>User</th>
           <th>User ID</th>
           <th>Points</th>
-          <th>Add / subtract</th>
-          <th>Set total</th>
+          <th>Sell pts</th>
+          <th>Trade pts</th>
+          <th>Donate pts</th>
+          <th>Where from</th>
+          <th>Redeem (points)</th>
+          <th>Claim item(s)</th>
         </tr>
       </thead>
       <tbody id="userBody"></tbody>
     </table>
   </section>
 </main>
+
+<!-- Points source modal -->
+<div id="ledgerModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); padding:24px; z-index:9999;">
+  <div style="background:#fff; max-width:980px; margin:0 auto; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25); overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid #eee;">
+      <div>
+        <div style="font-weight:800;">Point sources</div>
+        <div id="ledgerSub" style="font-size:12px; color:#666; margin-top:2px;"></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button id="ledgerRecalc" type="button" class="btn btn-delta" style="padding:8px 12px;">Recalculate breakdown</button>
+        <button id="ledgerClose" type="button" class="btn btn-view" style="padding:8px 12px;">Close</button>
+      </div>
+    </div>
+    <div style="padding:14px 16px; overflow:auto; max-height:70vh;">
+      <div id="ledgerStatus" class="msg" role="status" style="margin:0 0 10px 0;"></div>
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">When</th>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">Type</th>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">Role</th>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">Points</th>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">Post</th>
+            <th style="background:#f5f5f5; font-size:13px; padding:10px 8px; text-align:left; border-bottom:1px solid #eee;">Transaction</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
@@ -155,9 +194,14 @@
     getFirestore,
     collection,
     onSnapshot,
+    getDocs,
     doc,
     updateDoc,
     setDoc,
+    query,
+    where,
+    orderBy,
+    limit,
     Timestamp
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
@@ -168,7 +212,8 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -182,10 +227,18 @@
   const userBody = document.getElementById("userBody");
   const searchEl = document.getElementById("search");
   const statusMsg = document.getElementById("statusMsg");
+  const ledgerModal = document.getElementById("ledgerModal");
+  const ledgerClose = document.getElementById("ledgerClose");
+  const ledgerRecalc = document.getElementById("ledgerRecalc");
+  const ledgerBody = document.getElementById("ledgerBody");
+  const ledgerSub = document.getElementById("ledgerSub");
+  const ledgerStatus = document.getElementById("ledgerStatus");
+  let ledgerUserId = null;
 
   let rows = [];
   let filterText = "";
   let busyIds = new Set();
+  const showDangerButtons = localStorage.getItem("showDangerButtons") === "1";
 
   function escapeHtml(text) {
     return String(text ?? "")
@@ -198,6 +251,14 @@
 
   function pointsFromData(data) {
     const raw = data?.points;
+    if (typeof raw === "number" && !Number.isNaN(raw)) return Math.trunc(raw);
+    if (raw == null) return 0;
+    const n = parseInt(String(raw), 10);
+    return Number.isNaN(n) ? 0 : n;
+  }
+
+  function intField(data, key) {
+    const raw = data?.[key];
     if (typeof raw === "number" && !Number.isNaN(raw)) return Math.trunc(raw);
     if (raw == null) return 0;
     const n = parseInt(String(raw), 10);
@@ -231,29 +292,38 @@
   function render() {
     const list = filteredRows();
     if (!list.length) {
-      userBody.innerHTML = `<tr><td colspan="5">${rows.length ? "No users match your search." : "Loading users…"}</td></tr>`;
+      userBody.innerHTML = `<tr><td colspan="9">${rows.length ? "No users match your search." : "Loading users…"}</td></tr>`;
       return;
     }
 
     userBody.innerHTML = list.map(u => {
       const id = escapeHtml(u.__docId);
       const pts = pointsFromData(u);
+      const ptsSell = intField(u, "pointsSell");
+      const ptsTrade = intField(u, "pointsTrade");
+      const ptsDonate = intField(u, "pointsDonate");
       const busy = busyIds.has(u.__docId);
       return `
         <tr data-user-id="${id}">
           <td>${escapeHtml(displayName(u))}</td>
           <td><span class="uid">${escapeHtml(u.__docId)}</span></td>
           <td class="points-cell" data-points-display="${id}">${pts}</td>
+          <td class="points-cell">${ptsSell}</td>
+          <td class="points-cell">${ptsTrade}</td>
+          <td class="points-cell">${ptsDonate}</td>
+          <td><button type="button" class="btn btn-view" data-action="view" data-user-id="${id}">View</button></td>
           <td>
             <div class="row-actions">
-              <input type="number" step="1" data-delta-input="${id}" placeholder="± amount" ${busy ? "disabled" : ""}>
-              <button type="button" class="btn btn-delta" data-action="delta" data-user-id="${id}" ${busy ? "disabled" : ""}>Apply</button>
+              <input type="number" step="1" min="1" data-redeem-input="${id}" placeholder="Points" ${busy ? "disabled" : ""}>
             </div>
           </td>
           <td>
             <div class="row-actions">
-              <input type="number" step="1" min="0" data-set-input="${id}" placeholder="New total" ${busy ? "disabled" : ""}>
-              <button type="button" class="btn btn-set" data-action="set" data-user-id="${id}" ${busy ? "disabled" : ""}>Set</button>
+              <input type="text" data-claim-input="${id}" placeholder="Item(s) claimed" ${busy ? "disabled" : ""} style="min-width:180px; padding:6px 8px; border:1px solid #ccc; border-radius:6px;">
+              <button type="button" class="btn btn-set" data-action="redeem_claim" data-user-id="${id}" ${busy ? "disabled" : ""}>Done</button>
+              ${showDangerButtons
+                ? `<button type="button" class="btn btn-danger" data-action="delete_user" data-user-id="${id}" ${busy ? "disabled" : ""}>Delete</button>`
+                : ``}
             </div>
           </td>
         </tr>
@@ -261,14 +331,170 @@
     }).join("");
   }
 
-  async function applyPointsChange(userId, previousPoints, newPoints) {
-    const adminName = localStorage.getItem("adminName") || "Admin";
-    const safeNew = Math.max(0, Math.min(2000000000, Math.trunc(newPoints)));
-    const delta = safeNew - previousPoints;
-    if (delta === 0) {
-      setStatus("No change — new balance matches the current balance.", "ok");
+  function formatWhen(ts) {
+    if (!ts) return "";
+    try {
+      // Firestore Timestamp has toDate()
+      const d = typeof ts.toDate === "function" ? ts.toDate() : null;
+      if (!d) return "";
+      return d.toLocaleString();
+    } catch {
+      return "";
+    }
+  }
+
+  function openLedgerModal(userId, user) {
+    ledgerUserId = userId;
+    ledgerSub.textContent = `${displayName(user)} • ${userId}`;
+    ledgerStatus.textContent = "Loading…";
+    ledgerStatus.className = "msg";
+    ledgerBody.innerHTML = "";
+    ledgerModal.style.display = "block";
+  }
+
+  function closeLedgerModal() {
+    ledgerModal.style.display = "none";
+    ledgerUserId = null;
+  }
+
+  ledgerClose.addEventListener("click", closeLedgerModal);
+  ledgerModal.addEventListener("click", (e) => {
+    if (e.target === ledgerModal) closeLedgerModal();
+  });
+
+  async function loadLedger(userId) {
+    await signOut(auth).catch(() => {});
+    // Avoid composite-index requirements by only using a single-field filter,
+    // then sorting/limiting client-side.
+    const q = query(
+      collection(db, "user_points_ledger"),
+      where("userId", "==", userId),
+      limit(250)
+    );
+    const snap = await getDocs(q);
+    const docs = snap.docs
+      .map(d => d.data() || {})
+      .sort((a, b) => {
+        const ad = (a.awardedAt && typeof a.awardedAt.toDate === "function") ? a.awardedAt.toDate() : null;
+        const bd = (b.awardedAt && typeof b.awardedAt.toDate === "function") ? b.awardedAt.toDate() : null;
+        const at = ad ? ad.getTime() : 0;
+        const bt = bd ? bd.getTime() : 0;
+        return bt - at;
+      })
+      .slice(0, 50);
+    if (!docs.length) {
+      ledgerStatus.textContent = "No point history yet for this user.";
+      ledgerStatus.className = "msg";
+      ledgerBody.innerHTML = `<tr><td colspan="6">No entries.</td></tr>`;
       return;
     }
+    ledgerStatus.textContent = `Showing ${docs.length} most recent entries.`;
+    ledgerStatus.className = "msg ok";
+    ledgerBody.innerHTML = docs.map(row => {
+      const when = formatWhen(row.awardedAt);
+      const type = escapeHtml((row.type || "").toString());
+      const role = escapeHtml((row.role || "").toString());
+      const pts = intField(row, "pointsDelta");
+      const title = escapeHtml((row.postTitle || "").toString());
+      const txn = escapeHtml((row.transactionId || "").toString());
+      return `<tr>
+        <td>${escapeHtml(when)}</td>
+        <td>${type}</td>
+        <td>${role}</td>
+        <td class="points-cell">${pts}</td>
+        <td>${title || "-"}</td>
+        <td class="uid">${txn || "-"}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function addBreakdownFromRole(type, isSellerRole, acc) {
+    const t = String(type || "").trim().toLowerCase();
+    if (t === "trade") {
+      acc.pointsTrade += 10;
+      return;
+    }
+    if (t === "donate" || t === "donation") {
+      // sellerId == donor; buyerId == receiver
+      acc.pointsDonate += isSellerRole ? 25 : 15;
+      return;
+    }
+    // default to sell/selling
+    acc.pointsSell += isSellerRole ? 2 : 5;
+  }
+
+  async function recalcBreakdownForUser(userId) {
+    await signOut(auth).catch(() => {});
+    ledgerStatus.textContent = "Recalculating from completed transactions…";
+    ledgerStatus.className = "msg";
+    ledgerRecalc.disabled = true;
+
+    const acc = { pointsSell: 0, pointsTrade: 0, pointsDonate: 0 };
+    const txnsRef = collection(db, "transactions");
+
+    // As seller/donor
+    // Avoid composite indexes: fetch by sellerId then filter status client-side.
+    const qSeller = query(txnsRef, where("sellerId", "==", userId), limit(2000));
+    const sellerSnap = await getDocs(qSeller);
+    sellerSnap.forEach(d => {
+      const data = d.data?.() || {};
+      if (String(data.status || "").toLowerCase() !== "completed") return;
+      addBreakdownFromRole(data.type, true, acc);
+    });
+
+    // As buyer/receiver
+    // Avoid composite indexes: fetch by buyerId then filter status client-side.
+    const qBuyer = query(txnsRef, where("buyerId", "==", userId), limit(2000));
+    const buyerSnap = await getDocs(qBuyer);
+    buyerSnap.forEach(d => {
+      const data = d.data?.() || {};
+      if (String(data.status || "").toLowerCase() !== "completed") return;
+      addBreakdownFromRole(data.type, false, acc);
+    });
+
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      pointsSell: acc.pointsSell,
+      pointsTrade: acc.pointsTrade,
+      pointsDonate: acc.pointsDonate,
+      pointsBreakdownUpdatedAt: Timestamp.now()
+    });
+
+    ledgerStatus.textContent = `Updated: Sell ${acc.pointsSell}, Trade ${acc.pointsTrade}, Donate ${acc.pointsDonate}.`;
+    ledgerStatus.className = "msg ok";
+  }
+
+  ledgerRecalc.addEventListener("click", async () => {
+    if (!ledgerUserId) return;
+    try {
+      await recalcBreakdownForUser(ledgerUserId);
+    } catch (err) {
+      const msg = err?.message || String(err);
+      ledgerStatus.textContent =
+        "Failed to recalculate. " + msg
+        + (String(msg).toLowerCase().includes("index")
+          ? " Firestore may require an index for these transaction queries."
+          : "");
+      ledgerStatus.className = "msg err";
+    } finally {
+      ledgerRecalc.disabled = false;
+    }
+  });
+
+  async function redeemAndClaim(userId, user, previousPoints, redeemAmount, itemsText) {
+    const adminName = localStorage.getItem("adminName") || "Admin";
+    const prev = Math.trunc(previousPoints);
+    const amt = Math.max(1, Math.min(2000000000, Math.trunc(redeemAmount)));
+    const items = String(itemsText || "").trim();
+    if (!items) {
+      setStatus("Enter the item(s) claimed, then click Done.", "err");
+      return;
+    }
+    if (prev < amt) {
+      setStatus(`Not enough points. User has ${prev} point(s).`, "err");
+      return;
+    }
+    const safeNew = prev - amt;
 
     busyIds.add(userId);
     render();
@@ -277,29 +503,76 @@
     await signOut(auth).catch(() => {});
 
     const userRef = doc(db, "users", userId);
-    const logRef = doc(collection(db, "admin_point_adjustments"));
+    const redemptionRef = doc(collection(db, "reward_redemptions"));
 
     try {
       await updateDoc(userRef, { points: safeNew });
-      setStatus(`Updated points for ${userId} (${previousPoints} → ${safeNew}).`, "ok");
-      try {
-        await setDoc(logRef, {
-          targetUserId: userId,
-          previousPoints: previousPoints,
-          newPoints: safeNew,
-          delta,
-          adminName,
-          adjustedAt: Timestamp.now()
-        });
-      } catch (logErr) {
-        console.warn("Points saved; audit log skipped:", logErr);
-      }
+      await setDoc(redemptionRef, {
+        userId,
+        userName: displayName(user),
+        adminName,
+        items,
+        redeemedPoints: amt,
+        previousPoints: prev,
+        newPoints: safeNew,
+        createdAt: Timestamp.now()
+      });
+
+      setStatus(`Done: redeemed ${amt} points. (${prev} → ${safeNew})`, "ok");
+
+      const claimInput = document.querySelector(`input[data-claim-input="${userId}"]`);
+      if (claimInput) claimInput.value = "";
+      const redeemInput = document.querySelector(`input[data-redeem-input="${userId}"]`);
+      if (redeemInput) redeemInput.value = "";
     } catch (e) {
       const msg = e?.message || String(e);
       setStatus(
         "Failed: " + msg
           + (msg.toLowerCase().includes("permission")
             ? " If this persists, publish the latest firestore.rules in the Firebase Console (Firestore → Rules → Publish)."
+            : ""),
+        "err"
+      );
+    } finally {
+      busyIds.delete(userId);
+      render();
+    }
+  }
+
+  async function deleteUser(userId, user) {
+    const adminName = localStorage.getItem("adminName") || "Admin";
+    const display = displayName(user);
+
+    const adminPassword = prompt("Enter your admin password to continue.", "");
+    if (!adminPassword) {
+      setStatus("Delete cancelled (missing password).", "");
+      return;
+    }
+
+    busyIds.add(userId);
+    render();
+    setStatus("Deleting user… (this can take up to a minute)", "");
+
+    // Cloud Function URL: https://us-central1-<projectId>.cloudfunctions.net/adminDeleteUser
+    const fnUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/adminDeleteUser`;
+
+    try {
+      const resp = await fetch(fnUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, adminName, adminPassword })
+      });
+      const json = await resp.json().catch(() => ({}));
+      if (!resp.ok || !json.ok) {
+        throw new Error(json?.error || `Request failed (${resp.status})`);
+      }
+      setStatus(`Deleted user: ${display} (${userId})`, "ok");
+    } catch (e) {
+      const msg = e?.message || String(e);
+      setStatus(
+        "Delete failed: " + msg
+          + (String(msg).toLowerCase().includes("fetch")
+            ? " The delete endpoint may not be deployed/reachable yet. Deploy Firebase Functions and try again."
             : ""),
         "err"
       );
@@ -320,27 +593,38 @@
 
     const prev = pointsFromData(u);
 
-    if (action === "delta") {
-      const input = document.querySelector(`input[data-delta-input="${userId}"]`);
-      const raw = input ? input.value.trim() : "";
-      const delta = parseInt(raw, 10);
-      if (raw === "" || Number.isNaN(delta)) {
-        setStatus("Enter a whole number to add or subtract (e.g. 50 or -30).", "err");
-        return;
+    if (action === "view") {
+      openLedgerModal(userId, u);
+      try {
+        await loadLedger(userId);
+      } catch (err) {
+        const msg = err?.message || String(err);
+        ledgerStatus.textContent = "Failed to load point history: " + msg;
+        ledgerStatus.className = "msg err";
+        ledgerBody.innerHTML = `<tr><td colspan="6">Unable to load entries.</td></tr>`;
       }
-      await applyPointsChange(userId, prev, prev + delta);
       return;
     }
 
-    if (action === "set") {
-      const input = document.querySelector(`input[data-set-input="${userId}"]`);
+    if (action === "redeem_claim") {
+      const input = document.querySelector(`input[data-redeem-input="${userId}"]`);
       const raw = input ? input.value.trim() : "";
-      const next = parseInt(raw, 10);
-      if (raw === "" || Number.isNaN(next) || next < 0) {
-        setStatus("Enter a valid new total (0 or greater).", "err");
+      const amt = parseInt(raw, 10);
+      if (raw === "" || Number.isNaN(amt) || amt <= 0) {
+        setStatus("Enter redeem points (whole number, 1 or greater).", "err");
         return;
       }
-      await applyPointsChange(userId, prev, next);
+      const claimInput = document.querySelector(`input[data-claim-input="${userId}"]`);
+      const items = claimInput ? claimInput.value : "";
+      await redeemAndClaim(userId, u, prev, amt, items);
+    }
+
+    if (action === "delete_user") {
+      if (!showDangerButtons) {
+        setStatus("Delete is hidden/disabled on this admin page.", "err");
+        return;
+      }
+      await deleteUser(userId, u);
     }
   });
 
@@ -365,7 +649,7 @@
     render();
   }, err => {
     setStatus("Could not load users: " + (err?.message || err), "err");
-    userBody.innerHTML = `<tr><td colspan="5">Unable to load users.</td></tr>`;
+    userBody.innerHTML = `<tr><td colspan="9">Unable to load users.</td></tr>`;
   });
 </script>
 </body>
