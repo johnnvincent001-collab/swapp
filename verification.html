@@ -119,10 +119,11 @@
       <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
-      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward points</span></a></li>
-      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward tiers</span></a></li>
+      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
+      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
       <li class="active"><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
-      <li><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;"><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
     </ul>
   </div>
   <div class="logout" id="logoutBtn">
@@ -197,7 +198,8 @@
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -262,7 +264,11 @@
                  <button class="btn btn-approve" data-action="approve" data-id="${escapeHtml(docId)}">Approve</button>
                  <button class="btn btn-reject" data-action="reject" data-id="${escapeHtml(docId)}">Reject</button>
                </div>`
-            : `<span class="muted">No action</span>`}
+            : (section === "verified"
+                ? `<div class="actions">
+                     <button class="btn btn-reject" data-action="unverify" data-id="${escapeHtml(docId)}">Remove</button>
+                   </div>`
+                : `<span class="muted">No action</span>`)}
         </td>
       </tr>
     `;
@@ -275,13 +281,12 @@
       validIdStatus: nextStatus,
       ...extra
     };
-    if (nextStatus === "verified" || nextStatus === "approved") {
+    // Firestore rules (admin web, signed out) only allow updating:
+    // validIdStatus, verifiedBy, verifiedAt
+    // Treat verifiedBy/verifiedAt as "reviewed by/at" for both approve and reject.
+    if (nextStatus === "verified" || nextStatus === "approved" || nextStatus === "rejected" || nextStatus === "unverified") {
       payload.verifiedBy = adminName;
       payload.verifiedAt = serverTimestamp();
-    }
-    if (nextStatus === "rejected") {
-      payload.rejectedBy = adminName;
-      payload.rejectedAt = serverTimestamp();
     }
     await updateDoc(doc(db, "users", userDocId), payload);
   }
@@ -296,8 +301,16 @@
           if (action === "approve") {
             await updateVerificationStatus(id, "verified");
           } else if (action === "reject") {
-            const reason = prompt("Optional: enter a reason for rejection (leave blank for none).") || "";
-            await updateVerificationStatus(id, "rejected", reason.trim() ? { validIdRejectReason: reason.trim() } : {});
+            // Note: we do not write a rejection reason because current Firestore rules
+            // restrict admin verification updates to verification fields only.
+            await updateVerificationStatus(id, "rejected");
+          } else if (action === "unverify") {
+            const ok = confirm("Remove this user from verified users?\n\nThey will need to submit Valid ID and Face Liveness again.");
+            if (!ok) {
+              btn.disabled = false;
+              return;
+            }
+            await updateVerificationStatus(id, "unverified");
           }
         } catch (e) {
           alert("Failed to update status: " + (e?.message || e));
@@ -316,9 +329,10 @@
       }
     });
 
+    // Only show real submissions waiting for review.
     const pending = withSubmission.filter(u => {
-      const s = String(u.validIdStatus || "pending").toLowerCase();
-      return s !== "verified" && s !== "approved" && s !== "rejected";
+      const s = String(u.validIdStatus || "").toLowerCase();
+      return s === "pending";
     });
     const verified = withSubmission.filter(u => {
       const s = String(u.validIdStatus || "").toLowerCase();
