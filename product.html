@@ -161,6 +161,32 @@
     tr:nth-child(even) {
       background: #fafafa;
     }
+
+    .btn-delete {
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-delete:hover:not(:disabled) {
+      background: #a93226;
+    }
+
+    .btn-delete:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    th.actions-col,
+    td.actions-col {
+      width: 1%;
+      white-space: nowrap;
+      text-align: right;
+    }
   </style>
 </head>
 
@@ -207,18 +233,26 @@
       <li>
         <a href="reward-points.html">
           <span class="material-symbols-outlined">loyalty</span>
-          <span class="text">Reward points</span>
+          <span class="text">Reward Points</span>
         </a>
       </li>
 
       <li>
         <a href="reward-system.html">
           <span class="material-symbols-outlined">tune</span>
-          <span class="text">Reward tiers</span>
+          <span class="text">Reward Tiers &amp; Logs</span>
         </a>
       </li>
 
       <li>
+        <a href="verification.html">
+          <span class="material-symbols-outlined">badge</span>
+          <span class="text">ID Verification</span>
+        </a>
+      </li>
+
+      <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
+      <li style="display: none;">
         <a href="settings.html">
           <span class="material-symbols-outlined">settings</span>
           <span class="text">Settings</span>
@@ -250,6 +284,7 @@
           <th>Posted By</th>
           <th>Type</th>
           <th>Created At</th>
+          <th class="actions-col">Actions</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -259,12 +294,19 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    doc,
+    deleteDoc
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBGuY2RM1xruYXNBe0xi_oa0Gl-HnLOGb8",
     authDomain: "swapp-7d52b.firebaseapp.com",
-    projectId: "swapp-7d52b"
+    projectId: "swapp-7d52b",
+    storageBucket: "swapp-7d52b.firebasestorage.app"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -301,16 +343,75 @@
     tableBody.innerHTML = "";
     posts.forEach(post => {
       const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${post.title || "No Title"}</td>
-        <td>${post.description || ""}</td>
-        <td>${post.price || "--"}</td>
-        <td>${post.userName || "Unknown"}</td>
-        <td>${post.type || "--"}</td>
-        <td>${post.timestamp?.toDate ? post.timestamp.toDate().toLocaleDateString() : "--"}</td>
-      `;
+
+      const tdTitle = document.createElement("td");
+      tdTitle.textContent = post.title || "No Title";
+
+      const tdDesc = document.createElement("td");
+      tdDesc.textContent = post.description || "";
+
+      const tdPrice = document.createElement("td");
+      tdPrice.textContent =
+        post.price === 0 || post.price === "0"
+          ? "0"
+          : post.price != null && post.price !== ""
+            ? String(post.price)
+            : "--";
+
+      const tdUser = document.createElement("td");
+      tdUser.textContent = post.userName || "Unknown";
+
+      const tdType = document.createElement("td");
+      tdType.textContent = post.type || "--";
+
+      const tdDate = document.createElement("td");
+      tdDate.textContent =
+        post.timestamp?.toDate
+          ? post.timestamp.toDate().toLocaleDateString()
+          : "--";
+
+      const tdActions = document.createElement("td");
+      tdActions.className = "actions-col";
+
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn-delete";
+      delBtn.textContent = "Delete";
+      delBtn.title = "Permanently remove this listing from Firestore";
+      delBtn.addEventListener("click", () =>
+        confirmAndDeletePost(post.id, post.title || "No Title", delBtn)
+      );
+
+      tdActions.appendChild(delBtn);
+      row.append(
+        tdTitle,
+        tdDesc,
+        tdPrice,
+        tdUser,
+        tdType,
+        tdDate,
+        tdActions
+      );
       tableBody.appendChild(row);
     });
+  }
+
+  async function confirmAndDeletePost(postId, titleLabel, button) {
+    const ok = window.confirm(
+      `Permanently delete this listing?\n\n"${titleLabel}"\n\nThis cannot be undone.`
+    );
+    if (!ok) return;
+
+    button.disabled = true;
+    try {
+      await deleteDoc(doc(db, "posts", postId));
+    } catch (err) {
+      console.error(err);
+      window.alert(
+        "Could not delete listing: " + (err && err.message ? err.message : String(err))
+      );
+      button.disabled = false;
+    }
   }
 
   searchInput.addEventListener("input", () => {
