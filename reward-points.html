@@ -110,6 +110,7 @@
       <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
+      <li><a href="transactions.html"><span class="material-symbols-outlined">receipt_long</span><span class="text">Transaction Logs</span></a></li>
       <li class="active"><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
       <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
       <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
@@ -140,7 +141,6 @@
       <thead>
         <tr>
           <th>User</th>
-          <th>User ID</th>
           <th>Points</th>
           <th>Sell pts</th>
           <th>Trade pts</th>
@@ -292,7 +292,7 @@
   function render() {
     const list = filteredRows();
     if (!list.length) {
-      userBody.innerHTML = `<tr><td colspan="9">${rows.length ? "No users match your search." : "Loading users…"}</td></tr>`;
+      userBody.innerHTML = `<tr><td colspan="8">${rows.length ? "No users match your search." : "Loading users…"}</td></tr>`;
       return;
     }
 
@@ -306,7 +306,6 @@
       return `
         <tr data-user-id="${id}">
           <td>${escapeHtml(displayName(u))}</td>
-          <td><span class="uid">${escapeHtml(u.__docId)}</span></td>
           <td class="points-cell" data-points-display="${id}">${pts}</td>
           <td class="points-cell">${ptsSell}</td>
           <td class="points-cell">${ptsTrade}</td>
@@ -649,7 +648,7 @@
     render();
   }, err => {
     setStatus("Could not load users: " + (err?.message || err), "err");
-    userBody.innerHTML = `<tr><td colspan="9">Unable to load users.</td></tr>`;
+    userBody.innerHTML = `<tr><td colspan="8">Unable to load users.</td></tr>`;
   });
 </script>
 </body>
