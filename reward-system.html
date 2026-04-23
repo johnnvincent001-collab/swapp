@@ -128,6 +128,7 @@
       <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
       <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
       <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
+      <li><a href="transactions.html"><span class="material-symbols-outlined">receipt_long</span><span class="text">Transaction Logs</span></a></li>
       <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
       <li class="active"><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
       <li><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
@@ -143,11 +144,6 @@
 
 <main class="main">
   <h2>Reward Tiers &amp; Logs</h2>
-  <p class="sub">
-    Set the five point thresholds shown in the mobile app’s Rewards screen (from lowest to highest).
-    Only this admin site can change these values or deduct users’ balances for redemptions.
-    Sellers still earn points in the app when deals are completed; staff use <strong>Reward points</strong> to subtract points when a reward is given in person.
-  </p>
 
   <section class="card">
     <form id="tierForm">
@@ -162,46 +158,10 @@
       </div>
     </form>
     <div id="statusMsg" class="msg" role="status"></div>
-    <p class="hint">
-      Tiers must be strictly increasing (each value greater than the previous). The app shows five claim buttons using these amounts.
-    </p>
   </section>
 
   <section class="card card-wide">
-    <h3 style="font-size:18px; margin-bottom:8px;">Reward logs</h3>
-    <p class="sub" style="margin-bottom:0;">
-      View recent completed redemptions (points redeemed + item(s) claimed) logged by admins. This pulls from <code>reward_redemptions</code>.
-    </p>
-    <div class="controls">
-      <input id="logSearch" type="search" placeholder="Search by user name, user id, admin name, item…" autocomplete="off">
-      <select id="logFilter">
-        <option value="all">All</option>
-        <option value="redeem">Redemptions</option>
-      </select>
-    </div>
-    <div id="logStatus" class="msg" role="status"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>When</th>
-          <th>Type</th>
-          <th>User</th>
-          <th>Admin</th>
-          <th>Points</th>
-          <th>Details</th>
-          <th>Doc</th>
-        </tr>
-      </thead>
-      <tbody id="logBody"></tbody>
-    </table>
-  </section>
-
-  <section class="card card-wide">
-    <h3 style="font-size:18px; margin-bottom:8px;">Picture editable rewards</h3>
-    <p class="sub" style="margin-bottom:0;">
-      Update reward names and pictures shown in the mobile app. Choosing a file only previews locally; nothing uploads until you click <strong>Save changes</strong>.
-      When you save, the image uploads to <strong>Cloudinary</strong> (unsigned preset, same approach as the mobile app) and the returned URL is saved to <code>app_settings/rewards</code>.
-    </p>
+    <h3 style="font-size:18px; margin-bottom:8px;">Claimable Rewards</h3>
     <div id="rewardEditStatus" class="msg" role="status"></div>
 
     <div class="reward-edit-grid">
@@ -244,6 +204,32 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="card card-wide">
+    <h3 style="font-size:18px; margin-bottom:8px;">Reward Logs</h3>
+    <div class="controls">
+      <input id="logSearch" type="search" placeholder="Search by user name, user id, admin name, item…" autocomplete="off">
+      <select id="logFilter">
+        <option value="all">All</option>
+        <option value="redeem">Redemptions</option>
+      </select>
+    </div>
+    <div id="logStatus" class="msg" role="status"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Type</th>
+          <th>User</th>
+          <th>Admin</th>
+          <th>Points</th>
+          <th>Details</th>
+          <th>Doc</th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
   </section>
 </main>
 
