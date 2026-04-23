@@ -143,6 +143,32 @@
             font-size: 14px;
         }
 
+        .activity-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 10px 0 14px;
+            flex-wrap: wrap;
+        }
+
+        .activity-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .activity-filter select {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            color: #111827;
+            cursor: pointer;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -199,6 +225,12 @@
                 </a>
             </li>
             <li>
+                <a href="transactions.html">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    <span class="text">Transaction Logs</span>
+                </a>
+            </li>
+            <li>
                 <a href="reward-points.html">
                     <span class="material-symbols-outlined">loyalty</span>
                     <span class="text">Reward Points</span>
@@ -237,31 +269,31 @@
 
     <div class="cards">
         <div class="card">
-            <h3>Total Trades</h3>
-            <p id="totalTrades">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Total Sales</h3>
-            <p id="totalSales">0</p>
-        </div>
-
-        <div class="card">
-            <h3>Total Donations</h3>
-            <p id="totalDonations">0</p>
+            <h3>Total Transactions</h3>
+            <p id="totalTransactions">0</p>
         </div>
     </div>
 
     <div class="table-container">
         <h3>Recent Activity</h3>
-        <p class="notif-info" id="notifInfo">Waiting for reward claim notifications...</p>
+        <div class="activity-toolbar">
+            <p class="notif-info" id="notifInfo">Waiting for activity...</p>
+            <label class="activity-filter">
+                Filter
+                <select id="activityFilter">
+                    <option value="all">All</option>
+                    <option value="post">Posts</option>
+                    <option value="redeem">Redeems</option>
+                </select>
+            </label>
+        </div>
         <table>
             <thead>
                 <tr>
                     <th>User</th>
-                    <th>Reward</th>
-                    <th>Claimed At</th>
-                    <th>Status</th>
+                    <th>Details</th>
+                    <th>When</th>
+                    <th>Type</th>
                 </tr>
             </thead>
             <tbody id="recentActivityBody"></tbody>
@@ -294,19 +326,16 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const totalTradesEl = document.getElementById("totalTrades");
-    const totalSalesEl = document.getElementById("totalSales");
-    const totalDonationsEl = document.getElementById("totalDonations");
+    const totalTransactionsEl = document.getElementById("totalTransactions");
     const recentActivityBody = document.getElementById("recentActivityBody");
     const notifInfo = document.getElementById("notifInfo");
+    const activityFilterEl = document.getElementById("activityFilter");
 
-    const seenClaimIds = new Set();
     const seenRedemptionIds = new Set();
-    let hasLoadedClaims = false;
     let hasLoadedRedemptions = false;
 
-    const CLAIMS_COLLECTION = "reward_claims";
     const REDEMPTIONS_COLLECTION = "reward_redemptions";
+    const TRANSACTIONS_COLLECTION = "transactions";
     const POSTS_COLLECTION = "posts";
 
     function escapeHtml(text) {
@@ -343,10 +372,6 @@
         }
     }
 
-    function getCategory(post) {
-        return String(post.type || post.category || "").toLowerCase().trim();
-    }
-
     document.getElementById("toggleSidebar").addEventListener("click", () => {
         document.getElementById("sidebar").classList.toggle("minimized");
     });
@@ -356,26 +381,14 @@
         window.location.href = "login.html";
     });
 
-    onSnapshot(collection(db, POSTS_COLLECTION), snapshot => {
-        let trades = 0;
-        let sales = 0;
-        let donations = 0;
-
-        snapshot.forEach(docSnap => {
-            const p = docSnap.data() || {};
-            const category = getCategory(p);
-            if (category.includes("trade")) trades += 1;
-            else if (category.includes("sale")) sales += 1;
-            else if (category.includes("donation") || category.includes("donate")) donations += 1;
-        });
-
-        totalTradesEl.textContent = String(trades);
-        totalSalesEl.textContent = String(sales);
-        totalDonationsEl.textContent = String(donations);
+    onSnapshot(collection(db, TRANSACTIONS_COLLECTION), snapshot => {
+        totalTransactionsEl.textContent = String(snapshot.size || 0);
+    }, () => {
+        totalTransactionsEl.textContent = "0";
     });
 
-    let latestClaims = [];
     let latestRedemptions = [];
+    let latestPosts = [];
 
     function toSortMs(value) {
         if (!value) return 0;
@@ -393,12 +406,16 @@
     }
 
     function renderRecentActivity() {
-        const merged = [...latestClaims, ...latestRedemptions]
+        const filter = String(activityFilterEl?.value || "all");
+        const mergedAll = [...latestPosts, ...latestRedemptions];
+        const filtered = filter === "all" ? mergedAll : mergedAll.filter(x => x.kind === filter);
+
+        const merged = filtered
             .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0))
             .slice(0, 25);
 
         if (!merged.length) {
-            notifInfo.textContent = "No recent reward activity yet.";
+            notifInfo.textContent = "No recent activity yet.";
             recentActivityBody.innerHTML = `
                 <tr>
                     <td colspan="4">No recent activity.</td>
@@ -407,58 +424,48 @@
             return;
         }
 
-        const claimCount = merged.filter(x => x.kind === "claim").length;
+        const postCount = merged.filter(x => x.kind === "post").length;
         const redeemCount = merged.filter(x => x.kind === "redeem").length;
-        notifInfo.textContent = `Showing ${merged.length} latest activity (Claims: ${claimCount}, Redemptions: ${redeemCount}).`;
+        notifInfo.textContent =
+            filter === "all"
+                ? `Showing ${merged.length} latest activity (Posts: ${postCount}, Redeems: ${redeemCount}).`
+                : `Showing ${merged.length} latest ${filter}${merged.length === 1 ? "" : "s"}.`;
 
         recentActivityBody.innerHTML = merged.map(row => `
             <tr>
                 <td>${escapeHtml(row.userName)}</td>
-                <td>${escapeHtml(row.rewardName)}</td>
+                <td>${escapeHtml(row.details)}</td>
                 <td>${escapeHtml(formatDate(row.whenRaw))}</td>
-                <td>${escapeHtml(row.status)}</td>
+                <td>${escapeHtml(row.typeLabel)}</td>
             </tr>
         `).join("");
     }
 
-    onSnapshot(collection(db, CLAIMS_COLLECTION), snapshot => {
-        latestClaims = snapshot.docs
+    // Posts (recent listings/activity)
+    onSnapshot(collection(db, POSTS_COLLECTION), snapshot => {
+        latestPosts = snapshot.docs
             .map(docSnap => ({ id: docSnap.id, ...(docSnap.data() || {}) }))
-            .map(claim => {
-                const userName = claim.userName || claim.full_name || claim.name || claim.userId || "Unknown user";
-                const rewardName = claim.rewardName || claim.reward || `${claim.points || 0} points reward`;
-                const whenRaw = claim.claimedAt || claim.timestamp || claim.date;
-                const status = claim.status || "Claimed";
+            .map(post => {
+                const userName = post.userName || post.full_name || post.name || post.userId || "Unknown user";
+                const title = post.title || post.itemName || post.productName || "New post";
+                const type = post.type || post.category || "Post";
+                const details = `${title}${type ? ` • ${type}` : ""}`;
+                const whenRaw = post.timestamp || post.createdAt || post.date || post.postedAt;
                 return {
-                    kind: "claim",
-                    id: claim.id,
+                    kind: "post",
+                    id: post.id,
                     userName,
-                    rewardName,
+                    details,
                     whenRaw,
-                    status,
+                    typeLabel: "Post",
                     sortMs: toSortMs(whenRaw)
                 };
             });
 
-        latestClaims
-            .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0))
-            .slice(0, 50)
-            .forEach(item => {
-                if (hasLoadedClaims && !seenClaimIds.has(item.id)) {
-                    notifyAdmin(`${item.userName} claimed ${item.rewardName}`);
-                }
-                seenClaimIds.add(item.id);
-            });
-
-        hasLoadedClaims = true;
         renderRecentActivity();
-    }, error => {
-        notifInfo.textContent = "Unable to load reward activity.";
-        recentActivityBody.innerHTML = `
-            <tr>
-                <td colspan="4">${escapeHtml(error?.message || "Unknown error")}</td>
-            </tr>
-        `;
+    }, () => {
+        latestPosts = [];
+        renderRecentActivity();
     });
 
     onSnapshot(
@@ -479,9 +486,9 @@
                         kind: "redeem",
                         id: red.id,
                         userName,
-                        rewardName,
+                        details: rewardName,
                         whenRaw,
-                        status,
+                        typeLabel: status,
                         sortMs: toSortMs(whenRaw)
                     };
                 });
@@ -508,6 +515,8 @@
             `;
         }
     );
+
+    activityFilterEl?.addEventListener("change", renderRecentActivity);
 </script>
 
 </body>
