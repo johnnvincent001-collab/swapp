@@ -264,6 +264,12 @@
         </a>
       </li>
       <li>
+        <a href="transactions.html">
+          <span class="material-symbols-outlined">receipt_long</span>
+          <span class="text">Transaction Logs</span>
+        </a>
+      </li>
+      <li>
         <a href="reward-points.html">
           <span class="material-symbols-outlined">loyalty</span>
           <span class="text">Reward Points</span>
@@ -310,10 +316,9 @@
     <table>
       <thead>
         <tr>
-          <th>Report ID</th>
           <th>Title</th>
-          <th>Reporter</th>
-          <th>Reported</th>
+          <th>Reported by</th>
+          <th>Reported User</th>
           <th>Product</th>
           <th>Status</th>
           <th>Date Submitted</th>
@@ -333,7 +338,6 @@
     onSnapshot,
     doc,
     updateDoc,
-    deleteDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
@@ -366,16 +370,38 @@
   // Load reports
   const reportList = document.getElementById("reportList");
   const reportsRef = collection(db, "reports");
+  const ARCHIVE_KEY = "archived_reports";
+
+  function loadArchivedIds() {
+    try {
+      const raw = localStorage.getItem(ARCHIVE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  function saveArchivedIds(set) {
+    try {
+      localStorage.setItem(ARCHIVE_KEY, JSON.stringify(Array.from(set)));
+    } catch {
+      // ignore
+    }
+  }
 
   onSnapshot(reportsRef, snapshot => {
     reportList.innerHTML = "";
+    const archived = loadArchivedIds();
     const docs = snapshot.docs.slice().sort((a, b) => {
       const aDate = a.data().createdAt?.toMillis?.() ?? a.data().date?.toMillis?.() ?? 0;
       const bDate = b.data().createdAt?.toMillis?.() ?? b.data().date?.toMillis?.() ?? 0;
       return bDate - aDate;
     });
 
-    docs.forEach(docSnap => {
+    docs
+      .filter(docSnap => !archived.has(String(docSnap.id)))
+      .forEach(docSnap => {
       const r = docSnap.data();
       const fallbackTitle = r.reason
         ? `${r.reason}${r.listingType ? " - " + r.listingType : ""}`
@@ -391,7 +417,6 @@
       const canClose = statusKey === "pending" || statusKey === "open";
       reportList.innerHTML += `
         <tr>
-          <td>#${docSnap.id}</td>
           <td>${escapeHtml(r.title || fallbackTitle)}</td>
           <td>${escapeHtml(reporterName)}</td>
           <td>${escapeHtml(reportedName)}</td>
@@ -405,7 +430,7 @@
           <td class="report-actions">
             <a class="view-link" href="report-view.html?id=${encodeURIComponent(docSnap.id)}">View</a>
             ${canClose ? `<button type="button" class="view-link" data-action="close" data-id="${docSnap.id}">Close</button>` : ``}
-            <button type="button" class="btn-delete-report" data-action="delete" data-id="${docSnap.id}">Delete</button>
+            <button type="button" class="btn-delete-report" data-action="archive" data-id="${docSnap.id}">Archive</button>
           </td>
         </tr>
       `;
@@ -422,24 +447,22 @@
       .replaceAll("'", "&#039;");
   }
 
-  // Close report, hard delete report
+  // Close report, archive (frontend only)
   document.addEventListener("click", async (e) => {
-    const delBtn = e.target?.closest?.('button[data-action="delete"]');
-    if (delBtn) {
-      const id = delBtn.getAttribute("data-id");
+    const archiveBtn = e.target?.closest?.('button[data-action="archive"]');
+    if (archiveBtn) {
+      const id = archiveBtn.getAttribute("data-id");
       if (!id) return;
       const ok = window.confirm(
-        `Permanently delete this report?\n\n#${id}\n\nThis cannot be undone.`
+        `Archive this report from the list?\n\n#${id}\n\nThis will NOT delete it from the database.`
       );
       if (!ok) return;
-      delBtn.disabled = true;
-      try {
-        await deleteDoc(doc(db, "reports", id));
-      } catch (err) {
-        console.error(err);
-        window.alert("Failed to delete report: " + (err?.message || err));
-        delBtn.disabled = false;
-      }
+      archiveBtn.disabled = true;
+      const archived = loadArchivedIds();
+      archived.add(String(id));
+      saveArchivedIds(archived);
+      const row = archiveBtn.closest("tr");
+      if (row) row.remove();
       return;
     }
 
