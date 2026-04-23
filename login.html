@@ -76,10 +76,14 @@
       return normalized === "admin";
     }
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const name = document.getElementById("nameInput").value.trim();
-      const password = document.getElementById("passwordInput").value;
-      const errorMsg = document.getElementById("errorMsg");
+    const nameInput = document.getElementById("nameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginBtn = document.getElementById("loginBtn");
+    const errorMsg = document.getElementById("errorMsg");
+
+    async function handleLogin() {
+      const name = nameInput.value.trim();
+      const password = passwordInput.value;
       errorMsg.textContent = "";
 
       if (!name || !password) {
@@ -87,6 +91,7 @@
         return;
       }
 
+      loginBtn.disabled = true;
       try {
         const q = query(
           collection(db, "authorized_users"),
@@ -121,7 +126,19 @@
         window.location.href = "index.html";
       } catch (err) {
         errorMsg.textContent = "Error: " + err.message;
+      } finally {
+        loginBtn.disabled = false;
       }
+    }
+
+    loginBtn.addEventListener("click", handleLogin);
+    [nameInput, passwordInput].forEach(el => {
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleLogin();
+        }
+      });
     });
   </script>
 </body>
