@@ -162,6 +162,162 @@
       background: #fafafa;
     }
 
+    .img-col {
+      width: 1%;
+      white-space: nowrap;
+    }
+
+    .thumb-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      object-fit: cover;
+      display: block;
+    }
+
+    .open-link {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d7e2;
+      background: #f7fbff;
+      color: #1f5fbf;
+      font-weight: 600;
+      text-decoration: none;
+      transition: .2s ease;
+      white-space: nowrap;
+    }
+
+    .open-link:hover {
+      background: #eaf2ff;
+      border-color: #bcd3ff;
+      transform: translateY(-1px);
+    }
+
+    .more-link {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px dashed #cbd5e1;
+      background: #fff;
+      color: #0f172a;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: .2s ease;
+    }
+
+    .more-link:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+
+    /* Simple gallery viewer (like ID verification "Open") */
+    .gallery-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .gallery-modal.open {
+      display: flex;
+    }
+
+    .gallery-card {
+      width: min(980px, 96vw);
+      max-height: 92vh;
+      background: #0b1020;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gallery-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      color: #e5e7eb;
+      background: rgba(255,255,255,.06);
+    }
+
+    .gallery-title {
+      font-weight: 700;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .gallery-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    .gallery-close:hover {
+      background: rgba(255,255,255,.12);
+    }
+
+    .gallery-main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .gallery-main img {
+      max-width: 100%;
+      max-height: 62vh;
+      border-radius: 12px;
+      background: #111827;
+      border: 1px solid rgba(255,255,255,.10);
+      object-fit: contain;
+    }
+
+    .gallery-thumbs {
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      overflow-x: auto;
+      background: rgba(255,255,255,.04);
+    }
+
+    .gallery-thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      object-fit: cover;
+      cursor: pointer;
+      background: #111827;
+      flex: 0 0 auto;
+      opacity: 0.92;
+    }
+
+    .gallery-thumb.active {
+      border-color: #60a5fa;
+      opacity: 1;
+    }
+
     .btn-delete {
       background: #c0392b;
       color: #fff;
@@ -229,6 +385,12 @@
           <span class="text">Reports</span>
         </a>
       </li>
+      <li>
+        <a href="transactions.html">
+          <span class="material-symbols-outlined">receipt_long</span>
+          <span class="text">Transaction Logs</span>
+        </a>
+      </li>
 
       <li>
         <a href="reward-points.html">
@@ -278,6 +440,7 @@
     <table id="productsTable">
       <thead>
         <tr>
+          <th class="img-col">Image</th>
           <th>Title</th>
           <th>Description</th>
           <th>Price</th>
@@ -291,6 +454,20 @@
     </table>
   </section>
 </main>
+
+<!-- Gallery viewer for multiple post photos -->
+<div class="gallery-modal" id="galleryModal" aria-hidden="true">
+  <div class="gallery-card" role="dialog" aria-modal="true" aria-label="Post images">
+    <div class="gallery-topbar">
+      <div class="gallery-title" id="galleryTitle">Images</div>
+      <button type="button" class="gallery-close" id="galleryCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="gallery-main">
+      <img id="galleryMainImg" alt="Selected image" src="">
+    </div>
+    <div class="gallery-thumbs" id="galleryThumbs"></div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
@@ -328,8 +505,71 @@
   const postsRef = collection(db, "posts");
   const tableBody = document.querySelector("#productsTable tbody");
   const searchInput = document.getElementById("search");
+  const galleryModal = document.getElementById("galleryModal");
+  const galleryCloseBtn = document.getElementById("galleryCloseBtn");
+  const galleryMainImg = document.getElementById("galleryMainImg");
+  const galleryThumbs = document.getElementById("galleryThumbs");
+  const galleryTitle = document.getElementById("galleryTitle");
 
   let allPosts = [];
+
+  function normalizeImageUrls(post) {
+    const urls = [];
+    const one = (post?.imageUrl && String(post.imageUrl).trim()) ? String(post.imageUrl).trim() : "";
+    if (one) urls.push(one);
+    if (Array.isArray(post?.imageUrls)) {
+      post.imageUrls.forEach(u => {
+        const s = (u == null) ? "" : String(u).trim();
+        if (s && !urls.includes(s)) urls.push(s);
+      });
+    }
+    return urls;
+  }
+
+  function openGallery(urls, { startIndex = 0, title = "Images" } = {}) {
+    const safe = Array.isArray(urls) ? urls.filter(Boolean) : [];
+    if (!safe.length) return;
+    let idx = Math.max(0, Math.min(startIndex, safe.length - 1));
+
+    galleryTitle.textContent = `${title} (${idx + 1}/${safe.length})`;
+    galleryMainImg.src = safe[idx];
+    galleryThumbs.innerHTML = "";
+
+    safe.forEach((u, i) => {
+      const t = document.createElement("img");
+      t.className = "gallery-thumb" + (i === idx ? " active" : "");
+      t.src = u;
+      t.alt = `Image ${i + 1}`;
+      t.loading = "lazy";
+      t.addEventListener("click", () => {
+        idx = i;
+        galleryMainImg.src = safe[idx];
+        galleryTitle.textContent = `${title} (${idx + 1}/${safe.length})`;
+        galleryThumbs.querySelectorAll(".gallery-thumb").forEach((el, j) => {
+          el.classList.toggle("active", j === idx);
+        });
+      });
+      galleryThumbs.appendChild(t);
+    });
+
+    galleryModal.classList.add("open");
+    galleryModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeGallery() {
+    galleryModal.classList.remove("open");
+    galleryModal.setAttribute("aria-hidden", "true");
+    galleryMainImg.src = "";
+    galleryThumbs.innerHTML = "";
+  }
+
+  galleryCloseBtn.addEventListener("click", closeGallery);
+  galleryModal.addEventListener("click", (e) => {
+    if (e.target === galleryModal) closeGallery();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && galleryModal.classList.contains("open")) closeGallery();
+  });
 
   onSnapshot(postsRef, snapshot => {
     allPosts = snapshot.docs.map(doc => ({
@@ -343,6 +583,48 @@
     tableBody.innerHTML = "";
     posts.forEach(post => {
       const row = document.createElement("tr");
+
+      const tdImg = document.createElement("td");
+      tdImg.className = "img-col";
+
+      const urls = normalizeImageUrls(post);
+      const imgUrl = urls.length ? urls[0] : "";
+
+      if (imgUrl) {
+        const wrap = document.createElement("div");
+        wrap.className = "thumb-wrap";
+
+        const img = document.createElement("img");
+        img.className = "thumb";
+        img.loading = "lazy";
+        img.alt = "Post image";
+        img.src = imgUrl;
+
+        const open = document.createElement("button");
+        open.type = "button";
+        open.className = "open-link";
+        open.textContent = "Open";
+        open.addEventListener("click", () => {
+          openGallery(urls, { startIndex: 0, title: post.title || "Post images" });
+        });
+
+        wrap.append(img, open);
+
+        if (urls.length > 1) {
+          const more = document.createElement("button");
+          more.type = "button";
+          more.className = "more-link";
+          more.textContent = `+${urls.length - 1} more`;
+          more.addEventListener("click", () => {
+            openGallery(urls, { startIndex: 1, title: post.title || "Post images" });
+          });
+          wrap.appendChild(more);
+        }
+
+        tdImg.appendChild(wrap);
+      } else {
+        tdImg.textContent = "--";
+      }
 
       const tdTitle = document.createElement("td");
       tdTitle.textContent = post.title || "No Title";
@@ -384,6 +666,7 @@
 
       tdActions.appendChild(delBtn);
       row.append(
+        tdImg,
         tdTitle,
         tdDesc,
         tdPrice,
@@ -398,13 +681,14 @@
 
   async function confirmAndDeletePost(postId, titleLabel, button) {
     const ok = window.confirm(
-      `Permanently delete this listing?\n\n"${titleLabel}"\n\nThis cannot be undone.`
+      `Permanently delete this listing?\n\n"${titleLabel}"\n\nThis will delete it from the database and remove it from the app.`
     );
     if (!ok) return;
 
     button.disabled = true;
     try {
       await deleteDoc(doc(db, "posts", postId));
+      // onSnapshot will re-render automatically after deletion.
     } catch (err) {
       console.error(err);
       window.alert(
