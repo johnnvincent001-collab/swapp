@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ID Verification - SWAPP</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Logs - SWAPP</title>
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
     body { display: flex; height: 100vh; background: #f5f6fa; color: #333; }
     a { color: inherit; text-decoration: none; }
 
+    /* Sidebar */
     .sidebar {
       width: 250px;
       background: #fff;
@@ -17,115 +21,174 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+      box-shadow: 2px 0 5px rgba(0,0,0,.05);
       transition: width .3s;
     }
     .sidebar.minimized { width: 80px; }
-    .sidebar.minimized h1, .sidebar.minimized .text { display: none; }
+    .sidebar.minimized .brand,
+    .sidebar.minimized .text { display: none; }
     .toggle-btn { background: none; border: none; cursor: pointer; margin-bottom: 20px; font-size: 22px; }
-    .sidebar ul { list-style: none; }
-    .sidebar ul li {
+    .brand { font-weight: 700; font-size: 24px; margin-bottom: 30px; }
+    .brand .a { color: #3498db; }
+    .brand .b { color: #dbae80; }
+    .nav { list-style: none; }
+    .nav li { margin: 8px 0; border-radius: 8px; }
+    .nav li.active { background: #eaf2ff; font-weight: bold; }
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       padding: 12px 10px;
-      margin: 8px 0;
       border-radius: 8px;
-      transition: .3s ease;
+      transition: .25s ease;
     }
-    .sidebar ul li:hover { background: #f0f0f0; transform: translateX(8px); }
-    .sidebar ul li.active { background: #eaf2ff; font-weight: bold; }
-    .material-symbols-outlined { margin-right: 8px; vertical-align: middle; }
-    .logout { padding: 12px 10px; border-radius: 8px; cursor: pointer; }
+    .nav a:hover { background: #f0f0f0; transform: translateX(8px); }
+    .material-symbols-outlined { font-size: 22px; }
+    .logout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 10px;
+      border-radius: 8px;
+      color: #555;
+    }
     .logout:hover { background: #f0f0f0; }
 
+    /* Main */
     .main { flex: 1; padding: 30px; overflow-y: auto; }
-    h2 { font-size: 28px; margin-bottom: 20px; }
+    h2 { font-size: 28px; margin-bottom: 14px; }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
     .card {
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      padding: 20px;
     }
-    .card h3 { font-size: 14px; color: #666; margin-bottom: 6px; }
-    .card p { font-size: 22px; font-weight: 700; }
 
-    .table-wrap {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      padding: 16px;
-      margin-bottom: 18px;
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
-    .table-wrap h3 { margin-bottom: 12px; }
+    .toolbar input[type="search"]{
+      width: 100%;
+      max-width: 520px;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .toolbar select{
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .status {
+      color: #666;
+      font-size: 13px;
+      margin: 8px 0 0;
+      min-height: 16px;
+    }
 
     table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    th { background: #f7f7f7; font-size: 13px; }
-    .status {
-      display: inline-block;
-      border-radius: 999px;
+    th, td { padding: 12px; text-align: left; vertical-align: middle; }
+    th { background: #f5f5f5; font-size: 13px; }
+    tr:nth-child(even) { background: #fafafa; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
       padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 800;
       font-size: 12px;
-      font-weight: 700;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      text-transform: capitalize;
     }
-    .pending { background: #fff4d6; color: #986100; }
-    .verified { background: #e8f9ee; color: #0f7a3a; }
-    .rejected { background: #fde9e9; color: #9a1f1f; }
-    .id-thumb {
-      width: 72px;
-      height: 48px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #d9d9d9;
-      background: #efefef;
-    }
-    .face-thumb {
-      width: 52px;
-      height: 52px;
-      object-fit: cover;
-      border-radius: 50%;
-      border: 2px solid #d9d9d9;
-      background: #efefef;
-    }
-    .img-cell { display: flex; align-items: center; gap: 10px; }
-    .id-link { color: #1f5fbf; font-weight: 700; font-size: 13px; }
-    .muted { color: #888; font-size: 13px; }
-    .actions { display: flex; gap: 8px; }
-    .btn {
-      border: none;
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-    }
-    .btn-approve { background: #1f8f4c; }
-    .btn-reject { background: #c23b3b; }
+    .pill.completed { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+    .pill.pending { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+    .pill.cancelled { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+    .pill.other { background: #eef2ff; color: #1f5fbf; border-color: #c7d2fe; }
+
+    .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .muted { color: #6b7280; font-size: 12px; }
   </style>
 </head>
 <body>
+
 <aside class="sidebar" id="sidebar">
   <div>
     <button class="toggle-btn" id="toggleSidebar">☰</button>
-    <h1><span style="color:#3498db;">SW</span><span style="color:#dbae80;">APP</span></h1>
-    <ul>
-      <li><a href="index.html"><span class="material-symbols-outlined">dashboard</span><span class="text">Dashboard</span></a></li>
-      <li><a href="customers.html"><span class="material-symbols-outlined">group</span><span class="text">Authorized Users</span></a></li>
-      <li><a href="product.html"><span class="material-symbols-outlined">shopping_bag</span><span class="text">Products</span></a></li>
-      <li><a href="reports.html"><span class="material-symbols-outlined">description</span><span class="text">Reports</span></a></li>
-      <li><a href="reward-points.html"><span class="material-symbols-outlined">loyalty</span><span class="text">Reward Points</span></a></li>
-      <li><a href="reward-system.html"><span class="material-symbols-outlined">tune</span><span class="text">Reward Tiers &amp; Logs</span></a></li>
-      <li class="active"><a href="verification.html"><span class="material-symbols-outlined">badge</span><span class="text">ID Verification</span></a></li>
+
+    <h1 class="brand">
+      <span class="a">SW</span><span class="b">APP</span>
+    </h1>
+
+    <ul class="nav">
+      <li>
+        <a href="index.html">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="customers.html">
+          <span class="material-symbols-outlined">group</span>
+          <span class="text">Authorized Users</span>
+        </a>
+      </li>
+      <li>
+        <a href="product.html">
+          <span class="material-symbols-outlined">shopping_bag</span>
+          <span class="text">Products</span>
+        </a>
+      </li>
+      <li>
+        <a href="reports.html">
+          <span class="material-symbols-outlined">description</span>
+          <span class="text">Reports</span>
+        </a>
+      </li>
+      <li class="active">
+        <a href="transactions.html">
+          <span class="material-symbols-outlined">receipt_long</span>
+          <span class="text">Transaction Logs</span>
+        </a>
+      </li>
+      <li>
+        <a href="reward-points.html">
+          <span class="material-symbols-outlined">loyalty</span>
+          <span class="text">Reward Points</span>
+        </a>
+      </li>
+      <li>
+        <a href="reward-system.html">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="text">Reward Tiers &amp; Logs</span>
+        </a>
+      </li>
+      <li>
+        <a href="verification.html">
+          <span class="material-symbols-outlined">badge</span>
+          <span class="text">ID Verification</span>
+        </a>
+      </li>
       <!-- NAV: Settings disabled — remove display:none from this <li> to re-enable -->
-      <li style="display: none;"><a href="settings.html"><span class="material-symbols-outlined">settings</span><span class="text">Settings</span></a></li>
+      <li style="display: none;">
+        <a href="settings.html">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="text">Settings</span>
+        </a>
+      </li>
     </ul>
   </div>
+
   <div class="logout" id="logoutBtn">
     <span class="material-symbols-outlined">logout</span>
     <span class="text">Logout</span>
@@ -133,63 +196,40 @@
 </aside>
 
 <main class="main">
-  <h2>ID Verification</h2>
+  <h2>Transaction Logs</h2>
 
-  <div class="cards">
-    <div class="card">
-      <h3>Total Submitted</h3>
-      <p id="totalSubmitted">0</p>
+  <section class="card">
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search by buyer, seller, status, type, post id…" autocomplete="off">
+      <select id="statusFilter">
+        <option value="all">All statuses</option>
+        <option value="completed">Completed</option>
+        <option value="pending">Pending</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
     </div>
-    <div class="card">
-      <h3>Pending Verification</h3>
-      <p id="totalPending">0</p>
-    </div>
-    <div class="card">
-      <h3>Verified</h3>
-      <p id="totalVerified">0</p>
-    </div>
-  </div>
 
-  <section class="table-wrap">
-    <h3>Sent for Verification</h3>
     <table>
       <thead>
-      <tr>
-        <th>User</th>
-        <th>ID Type</th>
-        <th>Sent By</th>
-        <th>ID Image (Cloudinary)</th>
-        <th>Face Liveness</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
+        <tr>
+          <th>When</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Seller</th>
+          <th>Buyer</th>
+          <th>Post</th>
+        </tr>
       </thead>
-      <tbody id="pendingBody"></tbody>
+      <tbody id="txnBody"></tbody>
     </table>
-  </section>
 
-  <section class="table-wrap">
-    <h3>Verified Users</h3>
-    <table>
-      <thead>
-      <tr>
-        <th>User</th>
-        <th>ID Type</th>
-        <th>Verified By</th>
-        <th>ID Image (Cloudinary)</th>
-        <th>Face Liveness</th>
-        <th>Status</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody id="verifiedBody"></tbody>
-    </table>
+    <div class="status" id="statusMsg"></div>
   </section>
 </main>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
   if (!localStorage.getItem("adminName")) {
     window.location.href = "login.html";
@@ -201,14 +241,25 @@
     projectId: "swapp-7d52b",
     storageBucket: "swapp-7d52b.firebasestorage.app"
   };
+
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const pendingBody = document.getElementById("pendingBody");
-  const verifiedBody = document.getElementById("verifiedBody");
-  const totalSubmitted = document.getElementById("totalSubmitted");
-  const totalPending = document.getElementById("totalPending");
-  const totalVerified = document.getElementById("totalVerified");
+  const sidebar = document.getElementById("sidebar");
+  const toggleSidebar = document.getElementById("toggleSidebar");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  const txnBody = document.getElementById("txnBody");
+  const statusMsg = document.getElementById("statusMsg");
+  const searchEl = document.getElementById("search");
+  const statusFilterEl = document.getElementById("statusFilter");
+
+  toggleSidebar.addEventListener("click", () => sidebar.classList.toggle("minimized"));
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("adminName");
+    localStorage.removeItem("adminRole");
+    window.location.href = "login.html";
+  });
 
   function escapeHtml(text) {
     return String(text ?? "")
@@ -219,143 +270,148 @@
       .replace(/'/g, "&#039;");
   }
 
-  function rowHtml(u, section) {
-    const name = u.fullName || u.full_name || u.name || u.phoneNumber || "Unknown user";
-    const idType = u.validIdType || "Not selected";
-    const url = u.validIdUrl || "";
-    const statusRaw = String(u.validIdStatus || "pending").toLowerCase();
-    const faceUrl =
-      u.faceLivenessImageUrl ||
-      u.facePhotoFront ||
-      u.facePhotoFrontUrl ||
-      u.faceRecognitionUrl ||
-      u.faceRecognitionImageUrl ||
-      u.faceIdUrl ||
-      u.faceUrl ||
-      u.selfieUrl ||
-      u.selfie ||
-      "";
-
-    const statusClass =
-      (statusRaw === "verified" || statusRaw === "approved") ? "verified"
-        : (statusRaw === "rejected" ? "rejected" : "pending");
-    const statusLabel =
-      statusClass === "verified" ? "Verified"
-        : (statusClass === "rejected" ? "Rejected" : "Pending");
-    const docId = u.__docId || "";
-
-    return `
-      <tr>
-        <td>${escapeHtml(name)}</td>
-        <td>${escapeHtml(idType)}</td>
-        <td>${escapeHtml(u.verifiedBy || u.sentBy || name)}</td>
-        <td>
-          ${url ? `<div class="img-cell"><img class="id-thumb" src="${escapeHtml(url)}" alt="ID"> <a class="id-link" href="${escapeHtml(url)}" target="_blank">Open</a></div>`
-                : `<span class="muted">No image</span>`}
-        </td>
-        <td>
-          ${faceUrl ? `<div class="img-cell"><img class="face-thumb" src="${escapeHtml(faceUrl)}" alt="Face liveness" loading="lazy"> <a class="id-link" href="${escapeHtml(faceUrl)}" target="_blank" rel="noopener">Open</a></div>`
-                : `<span class="muted">No image</span>`}
-        </td>
-        <td><span class="status ${statusClass}">${statusLabel}</span></td>
-        <td>
-          ${section === "pending"
-            ? `<div class="actions">
-                 <button class="btn btn-approve" data-action="approve" data-id="${escapeHtml(docId)}">Approve</button>
-                 <button class="btn btn-reject" data-action="reject" data-id="${escapeHtml(docId)}">Reject</button>
-               </div>`
-            : (section === "verified"
-                ? `<div class="actions">
-                     <button class="btn btn-reject" data-action="unverify" data-id="${escapeHtml(docId)}">Remove</button>
-                   </div>`
-                : `<span class="muted">No action</span>`)}
-        </td>
-      </tr>
-    `;
-  }
-
-  async function updateVerificationStatus(userDocId, nextStatus, extra = {}) {
-    if (!userDocId) return;
-    const adminName = localStorage.getItem("adminName") || "Admin";
-    const payload = {
-      validIdStatus: nextStatus,
-      ...extra
-    };
-    // Firestore rules (admin web, signed out) only allow updating:
-    // validIdStatus, verifiedBy, verifiedAt
-    // Treat verifiedBy/verifiedAt as "reviewed by/at" for both approve and reject.
-    if (nextStatus === "verified" || nextStatus === "approved" || nextStatus === "rejected" || nextStatus === "unverified") {
-      payload.verifiedBy = adminName;
-      payload.verifiedAt = serverTimestamp();
+  function toSortMs(value) {
+    if (!value) return 0;
+    try {
+      if (typeof value.toMillis === "function") return value.toMillis();
+      if (value?.toDate) return value.toDate().getTime();
+    } catch {}
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+      const d = new Date(value);
+      const t = d.getTime();
+      return Number.isNaN(t) ? 0 : t;
     }
-    await updateDoc(doc(db, "users", userDocId), payload);
+    return 0;
   }
 
-  function wireActions() {
-    document.querySelectorAll("button[data-action][data-id]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-id");
-        const action = btn.getAttribute("data-action");
-        btn.disabled = true;
-        try {
-          if (action === "approve") {
-            await updateVerificationStatus(id, "verified");
-          } else if (action === "reject") {
-            // Note: we do not write a rejection reason because current Firestore rules
-            // restrict admin verification updates to verification fields only.
-            await updateVerificationStatus(id, "rejected");
-          } else if (action === "unverify") {
-            const ok = confirm("Remove this user from verified users?\n\nThey will need to submit Valid ID and Face Liveness again.");
-            if (!ok) {
-              btn.disabled = false;
-              return;
-            }
-            await updateVerificationStatus(id, "unverified");
-          }
-        } catch (e) {
-          alert("Failed to update status: " + (e?.message || e));
-          btn.disabled = false;
-        }
-      });
-    });
+  function formatWhen(value) {
+    if (!value) return "N/A";
+    try {
+      if (value?.toDate) return value.toDate().toLocaleString();
+    } catch {}
+    if (typeof value === "string" || typeof value === "number") {
+      const d = new Date(value);
+      if (!Number.isNaN(d.getTime())) return d.toLocaleString();
+    }
+    return "N/A";
   }
 
-  onSnapshot(collection(db, "users"), snap => {
-    const withSubmission = [];
-    snap.forEach(docSnap => {
-      const u = { __docId: docSnap.id, ...(docSnap.data() || {}) };
-      if (u.validIdUrl || u.validIdStatus || u.validIdType) {
-        withSubmission.push(u);
-      }
-    });
+  function normStatus(s) {
+    const v = String(s || "").trim().toLowerCase();
+    if (!v) return "other";
+    if (v.includes("complete")) return "completed";
+    if (v.includes("pend")) return "pending";
+    if (v.includes("cancel") || v.includes("reject") || v.includes("decline")) return "cancelled";
+    return "other";
+  }
 
-    // Only show real submissions waiting for review.
-    const pending = withSubmission.filter(u => {
-      const s = String(u.validIdStatus || "").toLowerCase();
-      return s === "pending";
-    });
-    const verified = withSubmission.filter(u => {
-      const s = String(u.validIdStatus || "").toLowerCase();
-      return s === "verified" || s === "approved";
-    });
+  function pill(status) {
+    const key = normStatus(status);
+    return `<span class="pill ${key}">${escapeHtml(status || key)}</span>`;
+  }
 
-    totalSubmitted.textContent = String(withSubmission.length);
-    totalPending.textContent = String(pending.length);
-    totalVerified.textContent = String(verified.length);
+  function txnType(t) {
+    const v = String(t || "").trim();
+    return v || "—";
+  }
 
-    pendingBody.innerHTML = pending.length ? pending.map(u => rowHtml(u, "pending")).join("") : `<tr><td colspan="7" class="muted">No pending ID submissions.</td></tr>`;
-    verifiedBody.innerHTML = verified.length ? verified.map(u => rowHtml(u, "verified")).join("") : `<tr><td colspan="7" class="muted">No verified users yet.</td></tr>`;
-    wireActions();
+  function partyName(raw) {
+    const v = String(raw || "").trim();
+    return v || "—";
+  }
+
+  let allTxns = [];
+  let filterText = "";
+
+  function haystack(t) {
+    return [
+      t.__docId,
+      t.status,
+      t.type,
+      t.sellerName,
+      t.buyerName,
+      t.sellerId,
+      t.buyerId,
+      t.postId,
+      t.listingId,
+      t.postTitle,
+      t.title
+    ].filter(Boolean).join(" ").toLowerCase();
+  }
+
+  function filtered() {
+    const q = filterText.trim().toLowerCase();
+    const status = String(statusFilterEl.value || "all").toLowerCase();
+    return allTxns
+      .filter(t => {
+        if (status === "all") return true;
+        return normStatus(t.status) === status;
+      })
+      .filter(t => !q || haystack(t).includes(q));
+  }
+
+  function render() {
+    const list = filtered()
+      .slice()
+      .sort((a, b) => (b.sortMs || 0) - (a.sortMs || 0));
+
+    if (!list.length) {
+      txnBody.innerHTML = `<tr><td colspan="6" class="muted">${allTxns.length ? "No transactions match your filters." : "Loading transactions…"}</td></tr>`;
+      statusMsg.textContent = "";
+      return;
+    }
+
+    const showing = Math.min(list.length, 250);
+    const subset = list.slice(0, showing);
+    statusMsg.textContent = `Showing ${showing} of ${list.length} transaction(s).`;
+
+    txnBody.innerHTML = subset.map(t => {
+      const when = escapeHtml(formatWhen(t.whenRaw));
+      const status = pill(t.status);
+      const type = escapeHtml(txnType(t.type));
+      const seller = escapeHtml(partyName(t.sellerName || t.sellerUserName || t.seller || t.sellerId));
+      const buyer = escapeHtml(partyName(t.buyerName || t.buyerUserName || t.buyer || t.buyerId));
+      const postId = escapeHtml(String(t.postId || t.listingId || "").trim());
+      const postTitle = escapeHtml(String(t.postTitle || t.title || "").trim());
+      const postCell = postTitle
+        ? `${postTitle}${postId ? `<div class="muted mono">${postId}</div>` : ""}`
+        : (postId ? `<span class="mono">${postId}</span>` : "—");
+      return `<tr>
+        <td>${when}</td>
+        <td>${status}</td>
+        <td>${type}</td>
+        <td>${seller}</td>
+        <td>${buyer}</td>
+        <td>${postCell}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  searchEl.addEventListener("input", () => {
+    filterText = searchEl.value || "";
+    render();
   });
+  statusFilterEl.addEventListener("change", render);
 
-  document.getElementById("toggleSidebar").addEventListener("click", () => {
-    document.getElementById("sidebar").classList.toggle("minimized");
-  });
-
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("adminName");
-    window.location.href = "login.html";
+  onSnapshot(collection(db, "transactions"), snap => {
+    allTxns = snap.docs.map(d => {
+      const x = d.data() || {};
+      const whenRaw = x.createdAt || x.timestamp || x.date || x.updatedAt || null;
+      return {
+        __docId: d.id,
+        ...x,
+        whenRaw,
+        sortMs: toSortMs(whenRaw)
+      };
+    });
+    render();
+  }, err => {
+    txnBody.innerHTML = `<tr><td colspan="6" class="muted">Unable to load transactions.</td></tr>`;
+    statusMsg.textContent = String(err?.message || err || "");
   });
 </script>
+
 </body>
 </html>
+
