@@ -144,6 +144,153 @@
     }
     .btn-approve { background: #1f8f4c; }
     .btn-reject { background: #c23b3b; }
+    .btn-ai { background: #6d28d9; }
+    .btn-ai:hover { background: #5b21b6; }
+    .btn-ai:disabled { opacity: .6; cursor: wait; }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,.55);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 20px;
+    }
+    .modal-overlay[hidden] { display: none; }
+    .modal-card {
+      background: #fff; border-radius: 16px;
+      width: 100%; max-width: 760px; max-height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid #eee;
+    }
+    .modal-head h3 { font-size: 18px; }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 28px; line-height: 1; color: #666; padding: 0 6px;
+    }
+    .modal-close:hover { color: #000; }
+    .modal-body { padding: 20px; overflow-y: auto; }
+
+    .ai-loading {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; padding: 24px 0; color: #666;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid #e5e7eb; border-top-color: #6d28d9;
+      border-radius: 50%; animation: spin .9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ai-images {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 16px;
+    }
+    .ai-images .col {
+      background: #f7f7f8; border-radius: 10px;
+      padding: 8px; text-align: center;
+    }
+    .ai-images img {
+      width: 100%; height: 180px; object-fit: contain;
+      background: #fff; border-radius: 6px;
+    }
+    .ai-images .col span {
+      display: block; font-size: 12px; color: #666;
+      margin-top: 6px; font-weight: 700;
+    }
+
+    .ai-verdict {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; border-radius: 10px;
+      margin-bottom: 14px; font-weight: 700;
+    }
+    .ai-verdict.match { background: #e8f9ee; color: #0f7a3a; }
+    .ai-verdict.nomatch { background: #fde9e9; color: #9a1f1f; }
+    .ai-verdict.uncertain { background: #fff4d6; color: #986100; }
+
+    .ai-section { margin-top: 14px; }
+    .ai-section h4 {
+      font-size: 12px; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 8px;
+    }
+    .ai-fields {
+      display: grid; grid-template-columns: 170px 1fr;
+      gap: 6px 12px; font-size: 14px;
+    }
+    .ai-fields .k { color: #6b7280; }
+    .ai-fields .v { color: #111; word-break: break-word; }
+
+    .ai-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ai-flag {
+      background: #fde9e9; color: #9a1f1f;
+      padding: 4px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 700;
+    }
+    .ai-flag.ok { background: #e8f9ee; color: #0f7a3a; }
+
+    .ai-summary {
+      background: #f0f6ff; border-left: 3px solid #1f5fbf;
+      padding: 10px 12px; border-radius: 6px;
+      font-size: 14px; line-height: 1.5;
+    }
+    .ai-rec { margin-top: 12px; font-weight: 700; font-size: 14px; }
+    .ai-rec.approve { color: #0f7a3a; }
+    .ai-rec.reject { color: #9a1f1f; }
+    .ai-rec.manual { color: #986100; }
+
+    .ai-error {
+      background: #fde9e9; color: #9a1f1f;
+      padding: 14px; border-radius: 8px;
+      font-size: 14px; white-space: pre-wrap;
+    }
+
+    .btn-bg { background: #d97706; }
+    .btn-bg:hover { background: #b45309; }
+
+    .bg-disclaimer {
+      background: #fff7ed; color: #7c2d12;
+      border-left: 3px solid #d97706;
+      padding: 10px 12px; border-radius: 6px;
+      font-size: 12px; line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .bg-risk {
+      display: inline-block; padding: 6px 12px;
+      border-radius: 999px; font-weight: 700;
+      font-size: 13px; margin-bottom: 12px;
+    }
+    .bg-risk.low { background: #e8f9ee; color: #0f7a3a; }
+    .bg-risk.medium { background: #fff4d6; color: #986100; }
+    .bg-risk.high { background: #fde9e9; color: #9a1f1f; }
+    .bg-risk.unknown { background: #eef; color: #334; }
+
+    .bg-report { font-size: 14px; line-height: 1.55; color: #1f2937; }
+    .bg-report h4 {
+      font-size: 13px; color: #111;
+      text-transform: uppercase; letter-spacing: .5px;
+      margin: 14px 0 6px;
+    }
+    .bg-report p { margin: 6px 0; }
+    .bg-report ul { margin: 6px 0 6px 20px; }
+    .bg-report li { margin: 3px 0; }
+    .bg-report a { color: #1f5fbf; }
+    .bg-report strong { color: #111; }
+
+    .bg-sources {
+      margin-top: 16px; padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    .bg-sources h4 {
+      font-size: 12px; color: #6b7280;
+      text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 8px;
+    }
+    .bg-sources ol { margin-left: 20px; font-size: 13px; }
+    .bg-sources li { margin: 4px 0; word-break: break-word; }
+    .bg-sources a { color: #1f5fbf; }
   </style>
 </head>
 <body>
@@ -229,6 +376,16 @@
     </table>
   </section>
 </main>
+
+<div class="modal-overlay" id="aiModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>AI Verification Analysis</h3>
+      <button class="modal-close" id="aiModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="aiModalBody"></div>
+  </div>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
@@ -317,11 +474,15 @@
         <td>
           ${section === "pending"
             ? `<div class="actions">
+                 <button class="btn btn-ai" data-action="analyze" data-id="${escapeHtml(docId)}">Analyze</button>
+                 <button class="btn btn-bg" data-action="bgcheck" data-id="${escapeHtml(docId)}">BG Check</button>
                  <button class="btn btn-approve" data-action="approve" data-id="${escapeHtml(docId)}">Approve</button>
                  <button class="btn btn-reject" data-action="reject" data-id="${escapeHtml(docId)}">Reject</button>
                </div>`
             : (section === "verified"
                 ? `<div class="actions">
+                     <button class="btn btn-ai" data-action="analyze" data-id="${escapeHtml(docId)}">Analyze</button>
+                     <button class="btn btn-bg" data-action="bgcheck" data-id="${escapeHtml(docId)}">BG Check</button>
                      <button class="btn btn-reject" data-action="unverify" data-id="${escapeHtml(docId)}">Remove</button>
                    </div>`
                 : `<span class="muted">No action</span>`)}
@@ -424,6 +585,21 @@
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
         const action = btn.getAttribute("data-action");
+
+        if (action === "analyze") {
+          btn.disabled = true;
+          try { await handleAnalyze(id); }
+          finally { btn.disabled = false; }
+          return;
+        }
+
+        if (action === "bgcheck") {
+          btn.disabled = true;
+          try { await handleBackgroundCheck(id); }
+          finally { btn.disabled = false; }
+          return;
+        }
+
         btn.disabled = true;
         try {
           if (action === "approve") {
@@ -484,6 +660,524 @@
     localStorage.removeItem("adminName");
     window.location.href = "login.html";
   });
+
+  // ===== Gemini AI verification analysis =====
+  // Restrict this key in Google Cloud Console: API restriction = Generative Language API,
+  // Application restriction = HTTP referrer for your admin domain.
+  const GEMINI_API_KEY = "AIzaSyDz5B8KdlMJNdg8I7cuFCUmjsW1w6Vk7Rw";
+  const GEMINI_MODEL = "gemini-2.5-flash";
+
+  const aiModal = document.getElementById("aiModal");
+  const aiModalBody = document.getElementById("aiModalBody");
+  const aiModalClose = document.getElementById("aiModalClose");
+
+  aiModalClose.addEventListener("click", closeAiModal);
+  aiModal.addEventListener("click", (e) => { if (e.target === aiModal) closeAiModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !aiModal.hidden) closeAiModal(); });
+
+  function openAiModal(html) {
+    aiModalBody.innerHTML = html;
+    aiModal.hidden = false;
+  }
+  function closeAiModal() {
+    aiModal.hidden = true;
+    aiModalBody.innerHTML = "";
+  }
+
+  function loadImageViaCanvas(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const maxSide = 1600;
+          const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+          const w = Math.max(1, Math.round(img.naturalWidth * scale));
+          const h = Math.max(1, Math.round(img.naturalHeight * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+          const base64 = dataUrl.split(",")[1] || "";
+          if (!base64) return reject(new Error("Canvas produced empty data."));
+          resolve({ inline_data: { mime_type: "image/jpeg", data: base64 } });
+        } catch (e) {
+          reject(new Error("Could not read image pixels (CORS-tainted canvas): " + (e?.message || e)));
+        }
+      };
+      img.onerror = () => reject(new Error("IMAGE_LOAD_FAILED"));
+      img.src = url;
+    });
+  }
+
+  async function imageUrlToInline(url) {
+    try {
+      return await loadImageViaCanvas(url);
+    } catch (e) {
+      if (e?.message !== "IMAGE_LOAD_FAILED") throw e;
+    }
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error(`This image no longer exists (404).\nThe URL stored in Firestore is dead:\n${url}`);
+        }
+        throw new Error(`Image fetch failed (${res.status}) for ${url}`);
+      }
+      const blob = await res.blob();
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = () => reject(reader.error || new Error("FileReader error"));
+        reader.readAsDataURL(blob);
+      });
+      return { inline_data: { mime_type: blob.type || "image/jpeg", data: base64 } };
+    } catch (e) {
+      const msg = String(e?.message || e);
+      if (msg === "Failed to fetch" || msg.includes("NetworkError")) {
+        throw new Error(
+          `Could not load image:\n${url}\n\n` +
+          `Likely causes:\n` +
+          `• The image was deleted from the host (Cloudinary / Storage).\n` +
+          `• The host doesn't allow loading from a file:// page. Try serving verification.html from http://localhost (e.g. \`npx serve\`) or your hosted domain instead of opening the .html file directly.`
+        );
+      }
+      throw e;
+    }
+  }
+
+  async function analyzeWithGemini(idUrl, faceUrl) {
+    const today = new Date().toISOString().slice(0, 10);
+    const prompt =
+`You are an ID verification assistant for SWAPP, a Philippine reward-points platform.
+
+You will see TWO images:
+1. The first image is a valid ID document (could be a Philippine Driver's License, UMID, PhilSys / National ID, Passport, PRC ID, Postal ID, SSS, GSIS, TIN, Voter's ID, Senior Citizen ID, or similar).
+2. The second image is a face liveness selfie of the user.
+
+Tasks:
+- Extract every readable field from the ID document. Use null when a field is not visible or unreadable.
+- Compare the photo on the ID with the selfie. Be honest — if the lighting, angle, or quality makes it hard to tell, mark confidence as "low".
+- Flag anything suspicious (blur, glare, possible editing, expired ID, mismatched data, screen photo, photo of a photo, etc.).
+- Today's date is ${today}. Use this to compute isExpired.
+- For recommendation, return one of: "approve", "reject", "manual_review".
+
+Return ONLY JSON matching the provided schema.`;
+
+    const schema = {
+      type: "object",
+      properties: {
+        idType: { type: "string", nullable: true },
+        fullName: { type: "string", nullable: true },
+        dateOfBirth: { type: "string", nullable: true },
+        idNumber: { type: "string", nullable: true },
+        address: { type: "string", nullable: true },
+        expiryDate: { type: "string", nullable: true },
+        issuingAuthority: { type: "string", nullable: true },
+        sex: { type: "string", nullable: true },
+        nationality: { type: "string", nullable: true },
+        isExpired: { type: "boolean", nullable: true },
+        imageQuality: { type: "string" },
+        faceMatch: {
+          type: "object",
+          properties: {
+            isMatch: { type: "boolean" },
+            confidence: { type: "string" },
+            reasoning: { type: "string" }
+          },
+          required: ["isMatch", "confidence", "reasoning"]
+        },
+        fraudFlags: { type: "array", items: { type: "string" } },
+        summary: { type: "string" },
+        recommendation: { type: "string" }
+      },
+      required: ["faceMatch", "imageQuality", "fraudFlags", "summary", "recommendation"]
+    };
+
+    const [idPart, facePart] = await Promise.all([
+      imageUrlToInline(idUrl),
+      imageUrlToInline(faceUrl)
+    ]);
+
+    const body = {
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { text: "Image 1 — ID document:" },
+          idPart,
+          { text: "Image 2 — Face liveness selfie:" },
+          facePart
+        ]
+      }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: schema,
+        temperature: 0.2
+      }
+    };
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API ${res.status}: ${errText.slice(0, 400)}`);
+    }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.find(p => p.text)?.text;
+    if (!text) throw new Error("Empty response from Gemini.");
+    try { return JSON.parse(text); }
+    catch { throw new Error("Could not parse Gemini response as JSON:\n" + text.slice(0, 400)); }
+  }
+
+  function renderAnalysisLoading(idUrl, faceUrl) {
+    return `
+      <div class="ai-images">
+        <div class="col"><img src="${escapeHtml(idUrl)}" alt="ID"><span>ID Document</span></div>
+        <div class="col"><img src="${escapeHtml(faceUrl)}" alt="Selfie"><span>Face Liveness</span></div>
+      </div>
+      <div class="ai-loading">
+        <div class="spinner"></div>
+        <div>Analyzing with Gemini…</div>
+      </div>`;
+  }
+
+  function renderAnalysisError(message) {
+    return `<div class="ai-error">${escapeHtml(message)}</div>`;
+  }
+
+  function renderAnalysisResult(idUrl, faceUrl, r) {
+    const fm = r.faceMatch || {};
+    const conf = String(fm.confidence || "").toLowerCase();
+    const verdictClass = (fm.isMatch === true && conf !== "low")
+      ? "match"
+      : (fm.isMatch === false ? "nomatch" : "uncertain");
+    const verdictLabel = (fm.isMatch === true && conf !== "low")
+      ? `Face match (${conf || "ok"} confidence)`
+      : (fm.isMatch === false
+          ? `Face does NOT match (${conf || "?"} confidence)`
+          : `Uncertain face match (${conf || "?"} confidence)`);
+
+    const recRaw = String(r.recommendation || "").toLowerCase();
+    const recClass = recRaw.includes("approve") ? "approve"
+                   : recRaw.includes("reject")  ? "reject"
+                   : "manual";
+    const recLabel = recRaw
+      ? recRaw.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())
+      : "—";
+
+    const fields = [
+      ["ID Type", r.idType],
+      ["Full Name", r.fullName],
+      ["Date of Birth", r.dateOfBirth],
+      ["ID Number", r.idNumber],
+      ["Sex", r.sex],
+      ["Nationality", r.nationality],
+      ["Address", r.address],
+      ["Issuing Authority", r.issuingAuthority],
+      ["Expiry Date", r.expiryDate],
+      ["Expired?", r.isExpired === true ? "Yes" : (r.isExpired === false ? "No" : null)],
+      ["ID Image Quality", r.imageQuality]
+    ];
+    const fieldsHtml = fields
+      .filter(([, v]) => v !== null && v !== undefined && v !== "")
+      .map(([k, v]) => `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(String(v))}</div>`)
+      .join("");
+
+    const flags = Array.isArray(r.fraudFlags) ? r.fraudFlags : [];
+    const flagsHtml = flags.length
+      ? flags.map(f => `<span class="ai-flag">${escapeHtml(String(f))}</span>`).join("")
+      : `<span class="ai-flag ok">No obvious flags</span>`;
+
+    return `
+      <div class="ai-images">
+        <div class="col"><img src="${escapeHtml(idUrl)}" alt="ID"><span>ID Document</span></div>
+        <div class="col"><img src="${escapeHtml(faceUrl)}" alt="Selfie"><span>Face Liveness</span></div>
+      </div>
+
+      <div class="ai-verdict ${verdictClass}">${escapeHtml(verdictLabel)}</div>
+
+      ${fm.reasoning ? `<div class="ai-section"><h4>Face match reasoning</h4><div>${escapeHtml(fm.reasoning)}</div></div>` : ""}
+
+      <div class="ai-section">
+        <h4>Extracted ID information</h4>
+        ${fieldsHtml ? `<div class="ai-fields">${fieldsHtml}</div>` : `<div class="muted">No readable fields.</div>`}
+      </div>
+
+      <div class="ai-section">
+        <h4>Fraud / quality flags</h4>
+        <div class="ai-flags">${flagsHtml}</div>
+      </div>
+
+      ${r.summary ? `<div class="ai-section"><h4>Summary</h4><div class="ai-summary">${escapeHtml(r.summary)}</div></div>` : ""}
+
+      <div class="ai-rec ${recClass}">AI recommendation: ${escapeHtml(recLabel)}</div>
+    `;
+  }
+
+  function findUserByDocId(docId) {
+    return latestPending.find(u => u.__docId === docId)
+        || latestVerified.find(u => u.__docId === docId);
+  }
+
+  async function handleAnalyze(docId) {
+    const u = findUserByDocId(docId);
+    if (!u) { openAiModal(renderAnalysisError("User record not found.")); return; }
+
+    const idUrl = u.validIdUrl || "";
+    const faceUrl =
+      u.faceLivenessImageUrl ||
+      u.facePhotoFront ||
+      u.facePhotoFrontUrl ||
+      u.faceRecognitionUrl ||
+      u.faceRecognitionImageUrl ||
+      u.faceIdUrl ||
+      u.faceUrl ||
+      u.selfieUrl ||
+      u.selfie || "";
+
+    if (!idUrl || !faceUrl) {
+      openAiModal(renderAnalysisError(
+        `Missing image:\n- ID image: ${idUrl ? "OK" : "missing"}\n- Face liveness: ${faceUrl ? "OK" : "missing"}`
+      ));
+      return;
+    }
+
+    openAiModal(renderAnalysisLoading(idUrl, faceUrl));
+
+    try {
+      const result = await analyzeWithGemini(idUrl, faceUrl);
+      openAiModal(renderAnalysisResult(idUrl, faceUrl, result));
+    } catch (e) {
+      openAiModal(renderAnalysisError("AI analysis failed.\n\n" + (e?.message || String(e))));
+    }
+  }
+
+  window.handleAnalyze = handleAnalyze;
+
+  // ===== Background check (OSINT via Gemini + Google Search grounding) =====
+
+  function inlineMd(text) {
+    let s = escapeHtml(text);
+    s = s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/__(.+?)__/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[^\*])\*([^\*\n]+?)\*(?!\*)/g, "$1<em>$2</em>");
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return s;
+  }
+
+  function renderMarkdown(md) {
+    const lines = String(md || "").split("\n");
+    const out = [];
+    let inList = false;
+    let paraBuf = [];
+
+    const flushPara = () => {
+      if (paraBuf.length) {
+        out.push(`<p>${inlineMd(paraBuf.join(" "))}</p>`);
+        paraBuf = [];
+      }
+    };
+    const closeList = () => {
+      if (inList) { out.push("</ul>"); inList = false; }
+    };
+
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line) { flushPara(); closeList(); continue; }
+      let m;
+      if ((m = line.match(/^#{1,6}\s+(.+)$/))) {
+        flushPara(); closeList();
+        out.push(`<h4>${inlineMd(m[1])}</h4>`);
+        continue;
+      }
+      if ((m = line.match(/^[-*]\s+(.+)$/))) {
+        flushPara();
+        if (!inList) { out.push("<ul>"); inList = true; }
+        out.push(`<li>${inlineMd(m[1])}</li>`);
+        continue;
+      }
+      closeList();
+      paraBuf.push(line);
+    }
+    flushPara(); closeList();
+    return out.join("\n");
+  }
+
+  async function runBackgroundCheckOnGemini(user) {
+    const name = user.fullName || user.full_name || user.name || "";
+    const phone = user.phoneNumber || user.phone || "";
+    const idType = user.validIdType || "";
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (!name && !phone) {
+      throw new Error("No name or phone number on this user record to search for.");
+    }
+
+    const prompt =
+`You are doing open-source intelligence (OSINT) due diligence for SWAPP, a Philippine reward-points platform, to assist with KYC review.
+
+SUBJECT TO CHECK:
+- Name: ${name || "(not provided)"}
+- Phone: ${phone || "(not provided)"}
+- ID type they submitted: ${idType || "(not provided)"}
+- Likely country: Philippines
+- Today's date: ${today}
+
+Use Google Search to look up publicly available information about this person. Search for:
+1. The exact name in quotes, combined with "Philippines" and "scam", "fraud", "arrest", "case", "wanted".
+2. The phone number (if provided).
+3. The name on sanctions / watchlist sources: OFAC SDN, UN consolidated list, EU sanctions, BSP, AMLC, World-Check style adverse-media databases.
+4. Their public social / professional profile (LinkedIn, Facebook, news pieces, business registry).
+
+IMPORTANT RULES:
+- Common names match many different people. Only report findings if there is reasonable evidence they're about THIS person (use Philippines context, phone, age, profession where possible). If you can't tell, flag it as "could not disambiguate" rather than asserting.
+- If you find nothing of note, say so plainly. A clean result is a normal and good result — do NOT invent findings.
+- Always cite your sources by including links.
+- Do not include personal opinions or politics, only factual public records.
+
+Return your report in this EXACT markdown structure:
+
+## Risk Level
+(One of exactly: LOW RISK, MEDIUM RISK, HIGH RISK, or UNKNOWN — followed by a one-sentence justification.)
+
+## Identity confirmation
+(How confident are you that public results refer to this specific person? Brief.)
+
+## Public profile
+(Bullet points — LinkedIn, business listings, professional info, etc. "None found" if empty.)
+
+## News & legal mentions
+(Bullet points of news, court, fraud, scam, or legal mentions. Include links. "None found" if clean.)
+
+## Sanctions & watchlists
+(Did the name appear on OFAC, UN, EU, BSP, or AMLC lists? "Not found on common sanctions lists" if clean.)
+
+## Red flags
+(Bullet points of any concerns. "None" if clean.)
+
+## Summary
+(Two-to-three sentences. Plain language. Useful for an admin reviewer.)`;
+
+    const body = {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: { temperature: 0.2 }
+    };
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API ${res.status}: ${errText.slice(0, 400)}`);
+    }
+    const data = await res.json();
+    const cand = data?.candidates?.[0];
+    const text = cand?.content?.parts?.map(p => p.text).filter(Boolean).join("\n").trim();
+    if (!text) throw new Error("Empty response from Gemini.");
+
+    const chunks = cand?.groundingMetadata?.groundingChunks || [];
+    const sources = chunks
+      .map(c => c?.web)
+      .filter(Boolean)
+      .map(w => ({ uri: w.uri || "", title: w.title || w.uri || "" }))
+      .filter(s => s.uri);
+
+    return { report: text, sources, subject: { name, phone, idType } };
+  }
+
+  function renderBgCheckLoading(subject) {
+    return `
+      <div class="bg-disclaimer">
+        <strong>Disclaimer:</strong> This is an open-source / public-web check only.
+        It is <strong>not</strong> a substitute for a formal NBI clearance, AMLC screening,
+        or licensed background check. Treat results as a starting point for manual review,
+        not as a final verdict.
+      </div>
+      <div class="ai-fields">
+        <div class="k">Name</div><div class="v">${escapeHtml(subject.name || "—")}</div>
+        ${subject.phone ? `<div class="k">Phone</div><div class="v">${escapeHtml(subject.phone)}</div>` : ""}
+        ${subject.idType ? `<div class="k">Submitted ID</div><div class="v">${escapeHtml(subject.idType)}</div>` : ""}
+      </div>
+      <div class="ai-loading">
+        <div class="spinner"></div>
+        <div>Searching the public web with Gemini…</div>
+      </div>`;
+  }
+
+  function renderBgCheckResult({ report, sources, subject }) {
+    const m = report.match(/##\s*Risk Level\s*\n+([^\n#]+)/i);
+    const riskLine = (m ? m[1] : "").trim();
+    const riskUpper = riskLine.toUpperCase();
+    let riskClass = "unknown";
+    let riskLabel = "Unknown risk";
+    if (riskUpper.includes("LOW"))  { riskClass = "low";    riskLabel = "Low risk"; }
+    else if (riskUpper.includes("HIGH")) { riskClass = "high"; riskLabel = "High risk"; }
+    else if (riskUpper.includes("MEDIUM")) { riskClass = "medium"; riskLabel = "Medium risk"; }
+
+    const sourcesHtml = sources.length
+      ? `<div class="bg-sources">
+           <h4>Sources (${sources.length})</h4>
+           <ol>
+             ${sources.map(s =>
+               `<li><a href="${escapeHtml(s.uri)}" target="_blank" rel="noopener">${escapeHtml(s.title)}</a></li>`
+             ).join("")}
+           </ol>
+         </div>`
+      : `<div class="bg-sources"><h4>Sources</h4><div class="muted">No web sources were cited by the search.</div></div>`;
+
+    return `
+      <div class="bg-disclaimer">
+        <strong>Disclaimer:</strong> Open-source / public-web check only. Not a formal
+        NBI / AMLC / licensed background check. Names can match multiple unrelated people —
+        review the cited sources before acting.
+      </div>
+
+      <div class="ai-fields" style="margin-bottom:14px;">
+        <div class="k">Name</div><div class="v">${escapeHtml(subject.name || "—")}</div>
+        ${subject.phone ? `<div class="k">Phone</div><div class="v">${escapeHtml(subject.phone)}</div>` : ""}
+        ${subject.idType ? `<div class="k">Submitted ID</div><div class="v">${escapeHtml(subject.idType)}</div>` : ""}
+      </div>
+
+      <span class="bg-risk ${riskClass}">${escapeHtml(riskLabel)}</span>
+
+      <div class="bg-report">${renderMarkdown(report)}</div>
+
+      ${sourcesHtml}
+    `;
+  }
+
+  async function handleBackgroundCheck(docId) {
+    const u = findUserByDocId(docId);
+    if (!u) { openAiModal(renderAnalysisError("User record not found.")); return; }
+
+    const subject = {
+      name: u.fullName || u.full_name || u.name || "",
+      phone: u.phoneNumber || u.phone || "",
+      idType: u.validIdType || ""
+    };
+
+    if (!subject.name && !subject.phone) {
+      openAiModal(renderAnalysisError(
+        "Cannot run background check — this user has no name or phone number on file."
+      ));
+      return;
+    }
+
+    openAiModal(renderBgCheckLoading(subject));
+
+    try {
+      const result = await runBackgroundCheckOnGemini(u);
+      openAiModal(renderBgCheckResult(result));
+    } catch (e) {
+      openAiModal(renderAnalysisError("Background check failed.\n\n" + (e?.message || String(e))));
+    }
+  }
 </script>
 </body>
 </html>
