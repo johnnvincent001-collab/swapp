@@ -144,6 +144,66 @@
       border-radius: 6px;
     }
 
+    .filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .filter-input {
+      flex: 1;
+      min-width: 240px;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .filter-select {
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      cursor: pointer;
+      min-width: 170px;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, .15);
+    }
+
+    .filter-clear {
+      padding: 10px 14px;
+      border: 1px solid #d0d7e2;
+      background: #f7fbff;
+      color: #1f5fbf;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: .2s ease;
+    }
+
+    .filter-clear:hover {
+      background: #eaf2ff;
+      border-color: #bcd3ff;
+    }
+
+    .filter-clear[hidden] { display: none; }
+
+    .results-count {
+      margin-bottom: 10px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -433,9 +493,16 @@
   <h2>Products</h2>
 
   <section class="card">
-    <div class="search-box">
-      <input id="search" type="text" placeholder="Search products...">
+    <div class="filters">
+      <input id="search" class="filter-input" type="text"
+             placeholder="Search by title, description, posted by, or price…">
+      <select id="typeFilter" class="filter-select" aria-label="Filter by type">
+        <option value="">All types</option>
+      </select>
+      <button type="button" id="clearFilters" class="filter-clear" hidden>Clear</button>
     </div>
+
+    <div class="results-count" id="resultsCount"></div>
 
     <table id="productsTable">
       <thead>
@@ -505,6 +572,9 @@
   const postsRef = collection(db, "posts");
   const tableBody = document.querySelector("#productsTable tbody");
   const searchInput = document.getElementById("search");
+  const typeSelect = document.getElementById("typeFilter");
+  const clearBtn = document.getElementById("clearFilters");
+  const resultsCount = document.getElementById("resultsCount");
   const galleryModal = document.getElementById("galleryModal");
   const galleryCloseBtn = document.getElementById("galleryCloseBtn");
   const galleryMainImg = document.getElementById("galleryMainImg");
@@ -512,6 +582,7 @@
   const galleryTitle = document.getElementById("galleryTitle");
 
   let allPosts = [];
+  let currentType = "";
 
   function normalizeImageUrls(post) {
     const urls = [];
@@ -576,8 +647,67 @@
       id: doc.id,
       ...doc.data()
     }));
-    renderPosts(allPosts);
+    refreshTypeOptions();
+    applyFilters();
   });
+
+  function getUniqueTypes(posts) {
+    const set = new Set();
+    posts.forEach(p => {
+      const t = (p.type == null ? "" : String(p.type)).trim();
+      if (t) set.add(t);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function refreshTypeOptions() {
+    const types = getUniqueTypes(allPosts);
+    const stillExists = !currentType || types.includes(currentType);
+
+    typeSelect.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = "";
+    allOpt.textContent = "All types";
+    typeSelect.appendChild(allOpt);
+
+    types.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      typeSelect.appendChild(opt);
+    });
+
+    if (!stillExists) currentType = "";
+    typeSelect.value = currentType;
+  }
+
+  function applyFilters() {
+    const q = (searchInput.value || "").trim().toLowerCase();
+    const t = currentType;
+
+    const filtered = allPosts.filter(p => {
+      if (t && String(p.type || "") !== t) return false;
+      if (q) {
+        const priceStr = (p.price == null ? "" : String(p.price));
+        const hay = [
+          p.title || "",
+          p.description || "",
+          p.userName || "",
+          priceStr
+        ].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const hasFilters = Boolean(q || t);
+    clearBtn.hidden = !hasFilters;
+    resultsCount.textContent = hasFilters
+      ? `Showing ${filtered.length} of ${allPosts.length} products`
+      : `${allPosts.length} products`;
+
+    renderPosts(filtered);
+  }
 
   function renderPosts(posts) {
     tableBody.innerHTML = "";
@@ -698,14 +828,19 @@
     }
   }
 
-  searchInput.addEventListener("input", () => {
-    const q = searchInput.value.toLowerCase();
-    const filtered = allPosts.filter(p =>
-      (p.title || "").toLowerCase().includes(q) ||
-      (p.description || "").toLowerCase().includes(q) ||
-      (p.userName || "").toLowerCase().includes(q)
-    );
-    renderPosts(filtered);
+  searchInput.addEventListener("input", applyFilters);
+
+  typeSelect.addEventListener("change", () => {
+    currentType = typeSelect.value;
+    applyFilters();
+  });
+
+  clearBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    currentType = "";
+    typeSelect.value = "";
+    applyFilters();
+    searchInput.focus();
   });
 </script>
 
